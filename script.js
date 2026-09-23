@@ -318,3 +318,20 @@ if(el.now)el.now.addEventListener('click',e=>{if(e.target.closest('#nowButton'))
 document.querySelector('#resetFilters').addEventListener('click',reset);
 document.querySelector('#emptyReset').addEventListener('click',reset);
 render();
+
+/* ---- Hero parallax: the photo drifts slower than the page and the copy fades as you scroll ---- */
+(function(){
+const hero=document.querySelector('.hero-v3'),bg=hero&&hero.querySelector('.hero-bg'),copy=hero&&hero.querySelector('.hero-content');
+if(!hero||!bg||reduceMotion)return;
+let ticking=false;
+function update(){
+ticking=false;
+const h=hero.offsetHeight,y=Math.min(Math.max(window.scrollY,0),h);
+const k=y/h;
+bg.style.transform=`translate3d(0,${(y*.38).toFixed(1)}px,0) scale(${(1+k*.06).toFixed(3)})`;
+copy.style.transform=`translate3d(0,${(y*.18).toFixed(1)}px,0)`;
+copy.style.opacity=Math.max(0,1-k*1.6).toFixed(3);
+}
+window.addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(update)}},{passive:true});
+update();
+})();

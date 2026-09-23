@@ -13,11 +13,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Heebo:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="assets/hero-sunset.webp" media="(min-width:641px)">
-<link rel="preload" as="image" href="assets/hero-sunset-m.webp" media="(max-width:640px)">
+<link rel="preload" as="image" href="assets/hero-sunset.webp" >
 <link rel="stylesheet" href="styles.css?v=4">
-<link rel="stylesheet" href="fixes.css?v=9">
-<script src="script.js?v=8" defer></script>
+<link rel="stylesheet" href="fixes.css?v=10">
+<script src="script.js?v=9" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#catalog">דלג לדמויים</a>
@@ -32,7 +31,9 @@
 </header>
 
 <main id="top">
-<section class="hero hero-v3" aria-labelledby="hero-title">
+<section class="hero hero-v3" id="hero" aria-labelledby="hero-title">
+<div class="hero-bg" aria-hidden="true"></div>
+<a class="hero-scroll" href="#catalog" aria-label="גלילה לדמויים"></a>
 <div class="container hero-content">
 <span class="eyebrow"><span class="eyebrow-dot"></span> מדריך שטח לז׳רז׳ור מהחוף</span>
 <h1 id="hero-title">הדמוי הנכון.<br><em>העבודה הנכונה.</em></h1>
