@@ -22,13 +22,27 @@
 }
 
 /* Animated cast + retrieve (angler on the right, lure comes back toward him) */
-.motion-graphic{transform:none;height:74px}
+.motion-graphic{transform:none;height:78px}
 .motion-graphic .motion-track{stroke:var(--orange);stroke-opacity:.18;stroke-width:3;stroke-dasharray:3 5}
-.motion-graphic .motion-trail{fill:none;stroke:var(--orange);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.motion-graphic .motion-trail{fill:none;stroke:var(--orange);stroke-opacity:.85;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .motion-graphic .motion-start{display:none}
-.motion-graphic .rod{fill:none;stroke:var(--navy);stroke-width:2.6;stroke-linecap:round}
-.motion-graphic .fishing-line{fill:none;stroke:#7d9296;stroke-width:.7}
-.motion-graphic .lure-glyph ellipse{fill:var(--teal);stroke:#fff;stroke-width:1}
-.motion-graphic .lure-glyph circle{fill:#fff}
+.motion-graphic .rod-blank{fill:#1d2f36}
+.motion-graphic .rod-grip{fill:#c49a63}
+.motion-graphic .rod-butt{fill:#1d2f36}
+.motion-graphic .rod-guides path{stroke:#8fa3a8;stroke-width:.6}
+.motion-graphic .rod-guides circle{fill:none;stroke:#5d7378;stroke-width:.7}
+.motion-graphic .reel-foot{stroke:#3a4c52;stroke-width:1.4}
+.motion-graphic .reel-body{fill:#34474e}
+.motion-graphic .reel-spool{fill:#a9b7ba;stroke:#34474e;stroke-width:.5}
+.motion-graphic .reel-handle{stroke:#34474e;stroke-width:1.1;stroke-linecap:round}
+.motion-graphic .fishing-line{fill:none;stroke:#6f878c;stroke-width:.55}
+.motion-graphic .lure-body{fill:var(--teal);stroke:#fff;stroke-width:.6}
+.motion-graphic .lure-lip{fill:#d7ecef;stroke:#8fb4ba;stroke-width:.4}
+.motion-graphic .lure-metal{fill:#c7d2d6;stroke:#6f858b;stroke-width:.6}
+.motion-graphic .lure-shine{fill:none;stroke:#fff;stroke-width:.8;stroke-linecap:round}
+.motion-graphic .lure-soft{fill:#e8a17d;stroke:#b8653f;stroke-width:.5}
+.motion-graphic .lure-head{fill:#40555c}
+.motion-graphic .lure-eye{fill:#111}
 .motion-graphic .splash{fill:none;stroke:var(--teal);stroke-width:1.2}
+.motion-graphic .puff{fill:#c9bfa4}
 .motion-axis span:last-child{direction:rtl}

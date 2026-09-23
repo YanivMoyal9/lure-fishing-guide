@@ -69,99 +69,166 @@ const groups=[
 // Holds (pauses) inside the retrieve, as fractions of the path. Gaps in a path ("M" moves) add holds automatically.
 const motionHolds={jigPause:[0.46]};
 const paceDuration={'איטי':5600,'בינוני':4600,'מהיר':3800};
-const ROD={butt:[274,70],tip:[252,6]};
+// how the lure speed changes on the way up (dart / hop) and down (flutter / fall)
+const speedProfile={jig:{up:2.6,down:.5},jigPause:{up:2.6,down:.5},twitch:{up:2,down:.75},steadyTwitch:{up:2.2,down:.8},surface:{up:1.3,down:1.3}};
+// how the rod reacts: lift = rod snaps up (jigging), snap = tip twitches down, none = steady retrieve
+const rodStyle={jig:'lift',jigPause:'lift',twitch:'snap',steadyTwitch:'snap',surface:'snap'};
+const lureShape={
+hard:'<path class="lure-body" d="M-7 0 C-5 -3.2 3 -3.4 7 -0.6 L9.5 -2 L8.6 0.4 L9.5 2.4 L7 1 C3 3.4 -5 3 -7 0Z"/><path class="lure-lip" d="M-7 0.4 L-10.5 3.2 L-8.8 3.8 L-6.2 1.6Z"/><circle class="lure-eye" cx="-4.4" cy="-0.8" r="0.95"/>',
+jig:'<path class="lure-metal" d="M-7.5 0 C-5 -2.6 4 -2.4 7.5 -0.3 C4 2.1 -5 2.4 -7.5 0Z"/><path class="lure-shine" d="M-5 -0.9 C-1 -1.9 3 -1.7 6 -0.5"/><circle class="lure-eye" cx="-4.9" cy="-0.3" r="0.9"/>',
+soft:'<path class="lure-soft" d="M-6.5 0 C-5 -2.8 2.5 -2.6 5.5 -1.2 L7.4 -3.6 L8.6 0 L7.4 3.6 L5.5 1.2 C2.5 2.6 -5 2.8 -6.5 0Z"/><path class="lure-head" d="M-6.5 0 C-6 -2.6 -3.2 -2.9 -2.4 -2.4 L-2.4 2.4 C-3.2 2.9 -6 2.6 -6.5 0Z"/><circle class="lure-eye" cx="-4.6" cy="-0.7" r="0.85"/>'
+};
 function motionGraphic(lure){
 const p=profiles[lure.id];
 const path=motionPaths[p.motion];
+const shape=lure.type==='jig'?'jig':lure.type==='soft'?'soft':'hard';
 return `<div class="motion-panel motion-${p.motion}"><div class="motion-heading"><span>תנועת הדמוי במים</span><strong>${p.label}</strong></div>
-<svg class="motion-graphic" viewBox="0 0 280 72" role="img" aria-label="אנימציה: זריקה והחזרה בשיטת ${p.label}" data-motion="${p.motion}" data-pace="${p.pace}">
+<svg class="motion-graphic" viewBox="0 0 280 74" role="img" aria-label="אנימציה: זריקה והחזרה בשיטת ${p.label}" data-motion="${p.motion}" data-pace="${p.pace}">
 <path class="water-line" d="M4 12 H244"/><path class="bottom-line" d="M4 61 C50 58 80 64 120 61 S190 59 244 62"/>
 <path class="motion-track" d="${path}"/>
 <path class="motion-trail" d="${path.replace(/\sM/g,' L')}"/>
-<circle class="splash" cx="0" cy="12" r="0"/>
+<circle class="splash" cx="0" cy="12" r="0"/><circle class="puff" cx="0" cy="60" r="0"/>
 <path class="fishing-line" d=""/>
-<path class="rod" d="M${ROD.butt[0]} ${ROD.butt[1]} Q${ROD.butt[0]-4} 36 ${ROD.tip[0]} ${ROD.tip[1]}"/>
-<g class="lure-glyph"><ellipse rx="6" ry="2.6"/><circle cx="-3.4" cy="-0.4" r="0.9"/></g>
+<g class="rod-group"><path class="rod-blank" d=""/><path class="rod-grip" d=""/><path class="rod-butt" d=""/><g class="rod-guides"></g><g class="reel"><path class="reel-foot" d=""/><ellipse class="reel-body" rx="4.2" ry="3.3"/><circle class="reel-spool" r="1.7"/><path class="reel-handle" d=""/></g></g>
+<g class="lure-glyph lure-${shape}">${lureShape[shape]}</g>
 </svg><div class="motion-axis"><span>הדייג בחוף</span><span>נקודת הנחיתה</span></div></div>`;
+}
+
+/* ---- Rod drawing ---- */
+const ROD={butt:[272,72],len:68,base:112};
+const GUIDES=[.42,.6,.75,.88];
+function bez(p0,p1,p2,t){const u=1-t;return [u*u*p0[0]+2*u*t*p1[0]+t*t*p2[0],u*u*p0[1]+2*u*t*p1[1]+t*t*p2[1]]}
+function bezT(p0,p1,p2,t){const u=1-t;const dx=2*u*(p1[0]-p0[0])+2*t*(p2[0]-p1[0]),dy=2*u*(p1[1]-p0[1])+2*t*(p2[1]-p1[1]);const l=Math.hypot(dx,dy)||1;return [dx/l,dy/l]}
+function rodGeometry(angle,bend){
+const a=angle*Math.PI/180,dir=[Math.cos(a),-Math.sin(a)];
+const n=[dir[1],-dir[0]];// normal pointing down/left, toward the lure
+const [bx,by]=ROD.butt;
+const tip=[bx+dir[0]*ROD.len+n[0]*bend,by+dir[1]*ROD.len+n[1]*bend];
+const ctrl=[bx+dir[0]*ROD.len*.55+n[0]*bend*.28,by+dir[1]*ROD.len*.55+n[1]*bend*.28];
+return {p0:[bx,by],p1:ctrl,p2:tip};
+}
+function taper(g,t0,t1,w0,w1,steps){
+const L=[],R=[];
+for(let i=0;i<=steps;i++){const t=t0+(t1-t0)*i/steps;const p=bez(g.p0,g.p1,g.p2,t),d=bezT(g.p0,g.p1,g.p2,t);const w=(w0+(w1-w0)*i/steps)/2;
+L.push(`${(p[0]-d[1]*w).toFixed(2)} ${(p[1]+d[0]*w).toFixed(2)}`);R.unshift(`${(p[0]+d[1]*w).toFixed(2)} ${(p[1]-d[0]*w).toFixed(2)}`)}
+return `M${L.join(' L')} L${R.join(' L')}Z`;
+}
+function drawRod(a,angle,bend){
+const g=rodGeometry(angle,bend);
+a.blank.setAttribute('d',taper(g,.18,1,2.6,.7,16));
+a.grip.setAttribute('d',taper(g,.03,.2,3.8,3.2,4));
+a.butt.setAttribute('d',taper(g,0,.04,4.2,4,1));
+// reel hangs under the rod (spinning reel)
+const s=bez(g.p0,g.p1,g.p2,.23),d=bezT(g.p0,g.p1,g.p2,.23),down=d[0]<0?[-d[1],d[0]]:[d[1],-d[0]];
+const nd=down[1]<0?[-down[0],-down[1]]:down;
+const r=[s[0]+nd[0]*6,s[1]+nd[1]*6];
+a.reelFoot.setAttribute('d',`M${s[0].toFixed(1)} ${s[1].toFixed(1)} L${r[0].toFixed(1)} ${r[1].toFixed(1)}`);
+a.reelBody.setAttribute('cx',r[0].toFixed(1));a.reelBody.setAttribute('cy',(r[1]+1).toFixed(1));
+a.reelSpool.setAttribute('cx',(r[0]-d[0]*2.6).toFixed(1));a.reelSpool.setAttribute('cy',(r[1]-d[1]*2.6).toFixed(1));
+a.crank=(a.crank||0);const ca=a.crank;
+a.reelHandle.setAttribute('d',`M${r[0].toFixed(1)} ${(r[1]+1).toFixed(1)} l${(Math.cos(ca)*4).toFixed(1)} ${(Math.sin(ca)*4).toFixed(1)}`);
+// guides
+const pts=GUIDES.map(t=>{const p=bez(g.p0,g.p1,g.p2,t),dd=bezT(g.p0,g.p1,g.p2,t);const nn=dd[0]<0?[dd[1],-dd[0]]:[-dd[1],dd[0]];const k=(1-t)*2.2+.8;return [p[0]+nn[0]*k,p[1]+nn[1]*k,p[0],p[1]]});
+a.guides.innerHTML=pts.map(([x,y,px,py],i)=>`<path d="M${px.toFixed(1)} ${py.toFixed(1)} L${x.toFixed(1)} ${y.toFixed(1)}"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(1.3-i*.2).toFixed(2)}"/>`).join('');
+return {tip:g.p2,spool:[r[0]-d[0]*2.6,r[1]-d[1]*2.6],guides:pts.map(p=>[p[0],p[1]])};
 }
 
 /* ---- Casting + retrieve animation ---- */
 const reduceMotion=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 const animated=new Map();
+const CAST=1100,HOLD=700,REST=1200;
 function setupAnimation(svg){
 const trail=svg.querySelector('.motion-trail');
 const total=trail.getTotalLength();
-// hold points from subpath gaps
-const holds=[...(motionHolds[svg.dataset.motion]||[])];
+const motion=svg.dataset.motion;
+const holds=[...(motionHolds[motion]||[])];
 const subs=svg.querySelector('.motion-track').getAttribute('d').split(/(?=M)/).filter(Boolean);
 if(subs.length>1){const tmp=document.createElementNS('http://www.w3.org/2000/svg','path');let acc=0;subs.slice(0,-1).forEach(s=>{tmp.setAttribute('d',s);acc+=tmp.getTotalLength();holds.push(Math.min(acc/total,1))})}
 holds.sort((a,b)=>a-b);
 trail.style.strokeDasharray=`${total} ${total}`;
-return {svg,trail,total,holds,start:null,retrieve:paceDuration[svg.dataset.pace]||4600,prevY:null,tipOff:0,
-lure:svg.querySelector('.lure-glyph'),line:svg.querySelector('.fishing-line'),rod:svg.querySelector('.rod'),splash:svg.querySelector('.splash')};
+const q=s=>svg.querySelector(s);
+return {svg,trail,total,holds,motion,speed:total/(paceDuration[svg.dataset.pace]||4600),
+profile:speedProfile[motion]||{up:1,down:1},style:rodStyle[motion]||'none',
+lure:q('.lure-glyph'),line:q('.fishing-line'),splash:q('.splash'),puff:q('.puff'),
+blank:q('.rod-blank'),grip:q('.rod-grip'),butt:q('.rod-butt'),guides:q('.rod-guides'),reelFoot:q('.reel-foot'),reelBody:q('.reel-body'),reelSpool:q('.reel-spool'),reelHandle:q('.reel-handle'),
+phase:'cast',t0:null,last:null,L:0,holdUntil:0,nextHold:0,lift:0,vy:0,prevY:null,crank:0,landed:false};
 }
-const CAST=900,HOLD=650,REST=1100;
-function progressAt(a,t){
-// maps elapsed retrieve time (ms) to path fraction, pausing at holds
-let remaining=t,pos=0;
-const moveTime=a.retrieve;
-for(const h of [...a.holds,1]){
-const seg=(h-pos)*moveTime;
-if(remaining<=seg)return pos+remaining/moveTime;
-remaining-=seg;pos=h;
-if(h===1)return 1;
-if(remaining<=HOLD)return pos;
-remaining-=HOLD;
+function resetCycle(a,now){a.phase='cast';a.t0=now;a.L=0;a.nextHold=0;a.holdUntil=0;a.lift=0;a.vy=0;a.prevY=null;a.landed=false}
+function lineTo(a,rod,x,y,sag){
+const [tx,ty]=rod.tip;const mx=(tx+x)/2,my=(ty+y)/2+Math.max(sag,0)*(1+Math.abs(tx-x)/120);
+const g=rod.guides.map(p=>`L${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
+a.line.setAttribute('d',`M${rod.spool[0].toFixed(1)} ${rod.spool[1].toFixed(1)} ${g} L${tx.toFixed(1)} ${ty.toFixed(1)} Q${mx.toFixed(1)} ${my.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)}`);
 }
-return 1;
-}
-function drawRod(a,tipX,tipY){
-const [bx,by]=ROD.butt;
-a.rod.setAttribute('d',`M${bx} ${by} Q${bx-4+(tipX-ROD.tip[0])*0.3} 36 ${tipX} ${tipY}`);
-return [tipX,tipY];
-}
+function placeLure(a,x,y,angle){a.lure.setAttribute('transform',`translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${(angle+180).toFixed(1)})`)}
 function frame(a,now){
-if(a.start===null)a.start=now;
-const cycle=CAST+a.retrieve+a.holds.length*HOLD+REST;
-const t=(now-a.start)%cycle;
+if(a.t0===null)resetCycle(a,now);
+const dt=Math.min(now-(a.last??now),50);a.last=now;
 const start=a.trail.getPointAtLength(0);
-let x,y,angle=0,tip;
-if(t<CAST){
-// cast: rod swings forward, lure flies on an arc to the landing point
-const k=t/CAST,e=1-Math.pow(1-k,2);
-tip=drawRod(a,ROD.tip[0]-10*Math.sin(Math.PI*Math.min(k*1.6,1)),ROD.tip[1]+4*Math.sin(Math.PI*Math.min(k*1.6,1)));
-const [sx,sy]=tip;const ex=start.x,ey=12;
-x=sx+(ex-sx)*e;y=(1-e)*(1-e)*sy+2*(1-e)*e*(-18)+e*e*ey;
-a.trail.style.strokeDashoffset=a.total;
-a.splash.setAttribute('r',0);
-a.prevY=null;a.tipOff=0;
-}else{
-const rt=t-CAST;
-const f=progressAt(a,rt);
-const L=f*a.total;
-const pt=a.trail.getPointAtLength(L),pt2=a.trail.getPointAtLength(Math.min(L+1,a.total));
-x=pt.x;y=pt.y;angle=Math.atan2(pt2.y-pt.y,pt2.x-pt.x)*180/Math.PI;
-if(f>=1){angle=0}
-a.trail.style.strokeDashoffset=a.total-L;
-// splash ring right after landing
-const s=Math.min(rt/500,1);a.splash.setAttribute('cx',start.x);a.splash.setAttribute('r',s<1?2+s*9:0);a.splash.style.opacity=1-s;
-// rod tip reacts to sudden rises (twitches / hops)
-const dy=a.prevY===null?0:a.prevY-y;a.prevY=y;
-a.tipOff=a.tipOff*0.82+Math.max(-3,Math.min(9,dy*2.2))*0.18*4;
-tip=drawRod(a,ROD.tip[0]+a.tipOff*0.5,ROD.tip[1]+a.tipOff);
+if(a.phase==='cast'){
+const k=Math.min((now-a.t0)/CAST,1);
+// rod: load back, fire forward, settle
+let ang,bend;
+if(k<.32){const e=k/.32;ang=ROD.base-38*e*e;bend=-4*e}
+else if(k<.55){const e=(k-.32)/.23;ang=ROD.base-38+72*e;bend=-4+14*Math.sin(Math.PI*e)}
+else{const e=(k-.55)/.45;ang=ROD.base+34-34*(1-Math.pow(1-e,2));bend=2*(1-e)}
+const rod=drawRod(a,ang,bend);
+let x,y,rot=0;
+if(k<.45){x=rod.tip[0]-2;y=rod.tip[1]+5}
+else{const e=(k-.45)/.55,f=1-Math.pow(1-e,1.6);const [sx,sy]=rod.tip;x=sx+(start.x-sx)*f;y=(1-f)*(1-f)*sy+2*(1-f)*f*(-26)+f*f*start.y;rot=-20+40*f}
+placeLure(a,x,y,rot);
+lineTo(a,rod,x,y,k<.45?0:2);
+a.trail.style.strokeDashoffset=a.total;a.splash.setAttribute('r',0);
+if(k>=1){a.phase='retrieve';a.landed=now}
+return;
 }
-a.lure.setAttribute('transform',`translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${(angle+180).toFixed(1)})`);
-const [tx,ty]=tip,mx=(tx+x)/2,my=Math.max(ty,y)+(t<CAST?-4:3);
-a.line.setAttribute('d',`M${tx} ${ty} Q${mx.toFixed(1)} ${my.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)}`);
+if(a.phase==='rest'){
+const rod=drawRod(a,ROD.base,1);const end=a.trail.getPointAtLength(a.total);
+placeLure(a,end.x,end.y,0);lineTo(a,rod,end.x,end.y,1);
+if(now-a.t0>REST)resetCycle(a,now);
+return;
+}
+// retrieve
+const holding=now<a.holdUntil;
+if(!holding){
+const here=a.trail.getPointAtLength(a.L),ahead=a.trail.getPointAtLength(Math.min(a.L+2,a.total));
+const slope=(ahead.y-here.y)/2;
+const factor=slope<-.3?a.profile.up:slope>.3?a.profile.down:1;
+a.L=Math.min(a.L+a.speed*factor*dt,a.total);
+a.crank+=dt*.02*(factor>1?.4:1);
+const hf=a.holds[a.nextHold];
+if(hf!==undefined&&a.L>=hf*a.total){a.holdUntil=now+HOLD;a.nextHold++}
+}
+const pt=a.trail.getPointAtLength(a.L),pt2=a.trail.getPointAtLength(Math.min(a.L+1.5,a.total));
+let angle=Math.atan2(pt2.y-pt.y,pt2.x-pt.x)*180/Math.PI;
+const vy=a.prevY===null?0:(a.prevY-pt.y)/Math.max(dt,1);// + when rising
+a.prevY=pt.y;a.vy=a.vy*.7+vy*.3;
+const rising=a.vy>.012,falling=a.vy<-.006;
+// rod behaviour
+let ang=ROD.base,bend=holding?0.5:2.5;
+if(a.style==='lift'){a.lift=a.lift*.86+(rising?1:0)*.14*3;ang=ROD.base-Math.min(a.lift,1.4)*16;bend=rising?7:falling?-.5:2}
+else if(a.style==='snap'){a.lift=a.lift*.8+(rising?1:0)*.2*3;ang=ROD.base+Math.min(a.lift,1.3)*9;bend=rising?6:1.5}
+const rod=drawRod(a,ang,bend);
+// flutter while a jig falls
+if(a.style==='lift'&&falling)angle+=Math.sin(now/55)*22;
+if(a.L>=a.total-0.5)angle=0;
+placeLure(a,pt.x,pt.y,angle);
+lineTo(a,rod,pt.x,pt.y,falling||holding?9:rising?0:3);
+a.trail.style.strokeDashoffset=a.total-a.L;
+// splash after landing, sand puff when a soft lure / jig touches bottom
+const s=Math.min((now-a.landed)/550,1);a.splash.setAttribute('cx',start.x);a.splash.setAttribute('r',s<1?2+s*10:0);a.splash.style.opacity=1-s;
+if(pt.y>=52&&!rising){a.puffAt=a.puffAt&&now-a.puffAt<600?a.puffAt:now;a.puff.setAttribute('cx',pt.x)}
+const ps=a.puffAt?Math.min((now-a.puffAt)/600,1):1;a.puff.setAttribute('r',ps<1?1+ps*6:0);a.puff.style.opacity=(1-ps)*.7;
+if(a.L>=a.total&&!holding){a.phase='rest';a.t0=now}
 }
 let rafId=null;
-function loop(now){animated.forEach(a=>{if(a.visible)frame(a,now)});rafId=requestAnimationFrame(loop)}
-const io='IntersectionObserver' in window?new IntersectionObserver(entries=>entries.forEach(en=>{const a=animated.get(en.target);if(a){a.visible=en.isIntersecting;if(!en.isIntersecting)a.start=null}}),{rootMargin:'80px'}):null;
+function loop(now){animated.forEach(a=>{if(a.visible)frame(a,now);else a.last=null});rafId=requestAnimationFrame(loop)}
+const io='IntersectionObserver' in window?new IntersectionObserver(entries=>entries.forEach(en=>{const a=animated.get(en.target);if(a){a.visible=en.isIntersecting;if(!en.isIntersecting)a.t0=null}}),{rootMargin:'80px'}):null;
 function initAnimations(){
 animated.forEach((a,svg)=>io&&io.unobserve(svg));animated.clear();
 document.querySelectorAll('.motion-graphic').forEach(svg=>{
 const a=setupAnimation(svg);animated.set(svg,a);
-if(reduceMotion){a.trail.style.strokeDashoffset=0;const end=a.trail.getPointAtLength(a.total);a.lure.setAttribute('transform',`translate(${end.x} ${end.y}) rotate(180)`);a.line.setAttribute('d',`M${ROD.tip[0]} ${ROD.tip[1]} L${end.x} ${end.y}`);return}
+if(reduceMotion){a.trail.style.strokeDashoffset=0;const end=a.trail.getPointAtLength(a.total);const rod=drawRod(a,ROD.base,1);placeLure(a,end.x,end.y,0);lineTo(a,rod,end.x,end.y,1);return}
+drawRod(a,ROD.base,1);
 if(io)io.observe(svg);else a.visible=true;
 });
 if(!reduceMotion&&rafId===null)rafId=requestAnimationFrame(loop);
