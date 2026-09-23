@@ -97,14 +97,17 @@
 @media(max-width:640px){.now-main{flex-direction:column;align-items:stretch}.now-months{grid-template-columns:repeat(6,minmax(0,1fr))}.nm{min-height:40px}}
 
 /* ===== Month bar inside each card ===== */
-.month-bar{display:grid;grid-template-columns:repeat(12,1fr);gap:2px;width:100%;max-width:230px;margin:0 0 11px}
-.month-bar .mb{display:flex;flex-direction:column;align-items:center;gap:2px}
-.month-bar .mb i{display:block;width:100%;height:6px;border-radius:2px;background:#e3ebea}
-.month-bar .mb.on i{background:var(--teal)}
-.month-bar.is-all .mb i{background:#9fcfcc}
-.month-bar .mb.now i{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #c4542c}
-.month-bar .mb b{font:700 9px/1 Assistant,Arial,sans-serif;color:#7b9195}
-.month-bar .mb.now b{color:#c4542c}
+.month-bar{width:100%;max-width:240px;margin:0 0 11px}
+.mb-track{display:grid;grid-template-columns:repeat(12,1fr);gap:2px;direction:rtl}
+.mb-track .mb{height:7px;border-radius:2px;background:#e3ebea;position:relative}
+.mb-track .mb.on{background:var(--teal)}
+.month-bar.is-all .mb-track .mb{background:#9fcfcc}
+.mb-track .mb.now{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #c4542c}
+.mb-caption{display:flex;align-items:baseline;gap:6px;margin-top:5px;font-size:12px;line-height:1.2}
+.mb-caption .mb-label{color:var(--muted);font-weight:700}
+.mb-caption b{color:var(--ink);font-weight:800}
+.mb-caption .mb-now{margin-inline-start:auto;display:inline-flex;align-items:center;gap:4px;color:#c4542c;font-weight:700;font-size:11px}
+.mb-caption .mb-now i{width:10px;height:6px;border-radius:2px;box-shadow:0 0 0 1.5px #c4542c}
 
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .lure-card:target{box-shadow:0 0 0 3px #c4542c,0 16px 35px #10374616}

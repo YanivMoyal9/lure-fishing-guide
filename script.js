@@ -262,7 +262,9 @@ if(!reduceMotion&&rafId===null)rafId=requestAnimationFrame(loop);
 }
 function monthBar(lure){
 const label=lure.months?`עונה: ${lure.months.map(m=>MONTH_NAMES[m-1]).join(', ')}`:'עובד כל השנה';
-return `<div class="month-bar${lure.months?'':' is-all'}" role="img" aria-label="${label}">${MONTH_SHORT.map((m,i)=>`<span class="mb${!lure.months||lure.months.includes(i+1)?' on':''}${i+1===NOW?' now':''}"><i></i><b>${m.replace('׳','')[0]}</b></span>`).join('')}</div>`;
+const inNow=!lure.months||lure.months.includes(NOW);
+const text=lure.months?`${rangeText(lure.months)}${inNow?' · בעונה עכשיו':''}`:'כל השנה';
+return `<div class="month-bar${lure.months?'':' is-all'}" role="img" aria-label="${label}"><div class="mb-track">${MONTH_NAMES.map((m,i)=>`<span class="mb${!lure.months||lure.months.includes(i+1)?' on':''}${i+1===NOW?' now':''}" title="${m}"></span>`).join('')}</div><div class="mb-caption"><span class="mb-label">עונה</span><b>${text}</b><span class="mb-now"><i></i>${MONTH_NAMES[NOW-1]}</span></div></div>`;
 }
 function card(lure){
 const s=season(lure);
