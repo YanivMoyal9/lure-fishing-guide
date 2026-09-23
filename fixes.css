@@ -54,7 +54,7 @@
 .motion-panel.is-top .motion-heading span{color:#aa522a}
 
 /* ===== Hero v3: full sunset photo with parallax ===== */
-.hero.hero-v3{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;color:#fff;background:#0b1d25;aspect-ratio:3/2;max-height:1100px;min-height:520px}
+.hero.hero-v3{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;color:#fff;background:#0b1d25;width:100%;height:min(66.667vw,1100px);min-height:520px}
 .hero-v3 .hero-bg{position:absolute;inset:-2px 0 0;z-index:-3;background:url('assets/hero-sunset.webp') center bottom/cover no-repeat;transform-origin:50% 100%;will-change:transform}
 .hero-v3::before{content:"";position:absolute;inset:0;z-index:-2;background:linear-gradient(90deg,rgba(7,24,32,.82) 0%,rgba(7,24,32,.55) 30%,rgba(7,24,32,.08) 56%,rgba(7,24,32,0) 70%)}
 .hero-v3::after{content:"";position:absolute;inset:auto 0 0;height:22%;z-index:-1;background:linear-gradient(0deg,var(--ground) 0%,rgba(245,248,247,.55) 35%,rgba(245,248,247,0) 100%)}
@@ -71,7 +71,7 @@
 .hero-scroll::after{content:"";position:absolute;left:50%;top:8px;width:4px;height:8px;margin-left:-2px;border-radius:2px;background:#fff;animation:heroScroll 1.8s ease-in-out infinite}
 @keyframes heroScroll{0%{opacity:0;transform:translateY(0)}30%{opacity:1}100%{opacity:0;transform:translateY(14px)}}
 @media(max-width:640px){
-.hero.hero-v3{display:block;aspect-ratio:auto;min-height:0;max-height:none;padding-top:calc(66.67vw - 40px);background:#0b1d25}
+.hero.hero-v3{display:block;height:auto;min-height:0;padding-top:calc(66.67vw - 40px);background:#0b1d25}
 .hero-v3 .hero-bg{inset:0 0 auto;height:66.67vw}
 .hero-v3::before{inset:0 0 auto;height:66.67vw;background:linear-gradient(0deg,#0b1d25 0%,rgba(11,29,37,.4) 30%,rgba(11,29,37,0) 55%)}
 .hero-v3::after{height:36px}
