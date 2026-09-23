@@ -264,18 +264,6 @@ function monthBar(lure){
 const label=lure.months?`עונה: ${lure.months.map(m=>MONTH_NAMES[m-1]).join(', ')}`:'עובד כל השנה';
 return `<div class="month-bar${lure.months?'':' is-all'}" role="img" aria-label="${label}">${MONTH_SHORT.map((m,i)=>`<span class="mb${!lure.months||lure.months.includes(i+1)?' on':''}${i+1===NOW?' now':''}"><i></i><b>${m.replace('׳','')[0]}</b></span>`).join('')}</div>`;
 }
-function renderCalendar(list){
-const t=document.querySelector('#seasonTable');if(!t)return;
-const sel=state.month==='all'?null:Number(state.month);
-const head=`<caption class="sr-only">לוח עונות: באילו חודשים כל דמוי בעונה</caption><thead><tr><th scope="col" class="c-name">דמוי</th>${MONTH_NAMES.map((m,i)=>`<th scope="col" class="c-m${i+1===NOW?' is-now':''}${i+1===sel?' is-sel':''}"><button type="button" data-month="${i+1}" aria-pressed="${i+1===sel}" aria-label="סנן לפי ${m}">${MONTH_SHORT[i]}</button></th>`).join('')}</tr></thead>`;
-const rows=list.map(l=>{
-const cells=MONTH_NAMES.map((m,i)=>{const on=!l.months||l.months.includes(i+1);const cls=[l.months?(on?'in':'out'):'all',i+1===NOW?'is-now':'',i+1===sel?'is-sel':''].join(' ');
-const prev=i>0&&(!l.months||l.months.includes(i)),next=i<11&&(!l.months||l.months.includes(i+2));
-return `<td class="${cls}"><span class="cell${on&&!prev?' start':''}${on&&!next?' end':''}"></span><span class="sr-only">${on?'בעונה':'לא בעונה'}</span></td>`}).join('');
-return `<tr><th scope="row" class="c-name"><a href="#card-${l.id}"><span lang="en">${escapeHTML(l.name.replace(/^(Ima|Bassday|Major Craft|Zeake|Fiiish|Ragot) /,''))}</span><small>${l.typeLabel}${l.months?'':' · כל השנה'}</small></a></th>${cells}</tr>`}).join('');
-t.innerHTML=head+`<tbody>${rows||`<tr><td colspan="13" class="c-empty">אין דמויים בסינון הזה</td></tr>`}</tbody>`;
-if(!renderCalendar.centered){renderCalendar.centered=true;requestAnimationFrame(()=>{const sc=t.closest('.seasons-scroll'),th=t.querySelector('th.is-now');if(!sc||!th||sc.scrollWidth<=sc.clientWidth)return;const a=sc.getBoundingClientRect(),b=th.getBoundingClientRect();const nw=t.querySelector('thead .c-name').offsetWidth;sc.scrollLeft+=(b.left+b.width/2)-(a.left+(a.width-nw)/2)})}
-}
 function card(lure){
 const s=season(lure);
 const p=profiles[lure.id];
@@ -302,7 +290,9 @@ parts.push(`${allYear} דמויים עובדים כל השנה`);
 if(later.length){const byMonth={};later.forEach(l=>{const m=nextStart(l);(byMonth[m]=byMonth[m]||[]).push(short(l))});
 Object.entries(byMonth).forEach(([m,names])=>parts.push(`${names.join(' ו־')} ${names.length>1?'נכנסים':'נכנס'} לעונה ב${MONTH_NAMES[m-1]}`))}
 const active=state.month===String(NOW);
-el.now.innerHTML=`<div class="now-text"><span class="now-label">מה עובד ב${MONTH_NAMES[NOW-1]}</span><p>${parts.join(' · ')}</p></div><button type="button" class="now-button" id="nowButton" aria-pressed="${active}">${active?'הצג את כל השנה':'הצג רק מה שעובד עכשיו'}</button>`;
+const sel=state.month==='all'?null:Number(state.month);
+const months=`<div class="now-months" role="group" aria-label="בחירת חודש">${MONTH_SHORT.map((m,i)=>{const n=i+1;return `<button type="button" class="nm${n===NOW?' is-now':''}${n===sel?' is-sel':''}" data-month="${n}" aria-pressed="${n===sel}" aria-label="${MONTH_NAMES[i]}${n===NOW?' (החודש)':''}">${m}</button>`}).join('')}</div>`;
+el.now.innerHTML=`<div class="now-main"><div class="now-text"><span class="now-label">מה עובד ב${MONTH_NAMES[NOW-1]}</span><p>${parts.join(' · ')}</p></div><button type="button" class="now-button" id="nowButton" aria-pressed="${active}">${active?'הצג את כל השנה':'הצג רק מה שעובד עכשיו'}</button></div>${months}`;
 }
 function render(){
 const q=state.search.trim().toLocaleLowerCase('he');
@@ -316,7 +306,6 @@ el.count.textContent=`${visible.length} מתוך ${lures.length} דמויים`;
 el.empty.hidden=visible.length!==0;
 el.hint.hidden=state.month==='all';
 renderNow();
-renderCalendar(lures.filter(l=>(state.type==='all'||l.type===state.type)&&(state.fish==='all'||l.fish.includes(state.fish))&&(!q||[l.name,l.subtitle,l.typeLabel,...l.fish].join(' ').toLocaleLowerCase('he').includes(q))));
 initAnimations();
 }
 function setMonth(v){state.month=v;el.month.value=v;render()}
@@ -325,8 +314,7 @@ document.querySelector('#typeFilters').addEventListener('click',event=>{const bu
 el.fish.addEventListener('change',()=>{state.fish=el.fish.value;render()});
 el.month.addEventListener('change',()=>setMonth(el.month.value));
 el.search.addEventListener('input',()=>{state.search=el.search.value;render()});
-if(el.now)el.now.addEventListener('click',e=>{if(e.target.closest('#nowButton'))setMonth(state.month===String(NOW)?'all':String(NOW))});
-document.querySelector('#seasonTable')?.addEventListener('click',e=>{const b=e.target.closest('[data-month]');if(b)setMonth(state.month===b.dataset.month?'all':b.dataset.month)});
+if(el.now)el.now.addEventListener('click',e=>{if(e.target.closest('#nowButton'))return setMonth(state.month===String(NOW)?'all':String(NOW));const m=e.target.closest('[data-month]');if(m)setMonth(state.month===m.dataset.month?'all':m.dataset.month)});
 document.querySelector('#resetFilters').addEventListener('click',reset);
 document.querySelector('#emptyReset').addEventListener('click',reset);
 render();
