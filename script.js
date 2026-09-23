@@ -275,7 +275,7 @@ return `<article class="lure-card" id="card-${lure.id}" aria-labelledby="lure-${
 <div class="card-identity"><div class="card-badges"><span class="card-type">${lure.typeLabel}</span>${s.badges.map(b=>`<span class="season-badge ${b.className}">${b.text}</span>`).join('')}</div><h3 id="lure-${lure.id}" lang="en">${escapeHTML(lure.name)}</h3><p class="card-subtitle">${lure.subtitle}</p>${monthBar(lure)}<div class="fish-tags">${lure.fish.map(f=>`<span>${f}</span>`).join('')}</div></div></div>
 ${motionGraphic(lure)}
 <div class="method-block"><span class="method-title">כך עובדים איתו</span><ol class="method-steps">${lure.methods.map((m,i)=>`<li><span class="step-num">${i+1}</span><span>${m}</span></li>`).join('')}</ol></div>
-<div class="card-bottom"><div class="stat"><span>קצב</span><strong>${p.pace}</strong><span class="pace-bars pace-${p.pace==='איטי'?1:p.pace==='בינוני'?2:3}" aria-hidden="true"><i></i><i></i><i></i></span></div><div class="stat"><span>אזור</span><strong>${p.water}</strong></div><a class="share-link" href="https://wa.me/?text=${encodeURIComponent(shareText)}" target="_blank" rel="noopener noreferrer" aria-label="שלח את ${escapeHTML(lure.name)} בוואטסאפ">שלח בוואטסאפ ↗</a></div>
+<div class="card-bottom"><div class="stat"><span>קצב</span><strong>${p.pace}</strong><span class="pace-bars pace-${p.pace==='איטי'?1:p.pace==='בינוני'?2:3}" aria-hidden="true"><i></i><i></i><i></i></span></div><div class="stat"><span>אזור</span><strong>${p.water}</strong></div><a class="fix-link" href="#suggest" data-fix="${lure.id}">הצעת תיקון</a><a class="share-link" href="https://wa.me/?text=${encodeURIComponent(shareText)}" target="_blank" rel="noopener noreferrer" aria-label="שלח את ${escapeHTML(lure.name)} בוואטסאפ">שלח בוואטסאפ ↗</a></div>
 ${lure.note?`<p class="card-note">${lure.note}</p>`:''}
 </article>`;
 }
@@ -336,4 +336,89 @@ copy.style.opacity=Math.max(0,1-k*1.6).toFixed(3);
 }
 window.addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(update)}},{passive:true});
 update();
+})();
+
+
+/* ---- Suggest a lure / fix form → WhatsApp ---- */
+(function(){
+// Supabase project (Settings -> API). The anon/publishable key is meant to be public; the table only allows inserts.
+const SUPABASE_URL='https://necjcplmlfyxzmymiupq.supabase.co';
+const SUPABASE_KEY='sb_publishable_9xBWNLiNUyAzIfj8v1di5A_YMScY1Vz';
+const form=document.querySelector('#suggestForm');if(!form)return;
+const $=id=>document.getElementById(id);
+const TYPES=['מינו / פנסיל','טופ ווטר','ג׳יג','סיליקון','אחר'];
+const typeOf={minnow:'מינו / פנסיל',topwater:'טופ ווטר',jig:'ג׳יג',soft:'סיליקון'};
+$('sfType').innerHTML=TYPES.map((t,i)=>`<label class="sf-chip"><input type="radio" name="sfType" value="${t}"${i===0?' checked':''}><span>${t}</span></label>`).join('');
+$('sfFish').innerHTML=fishNames.map(f=>`<label class="sf-chip"><input type="checkbox" name="sfFish" value="${f}"><span>${f}</span></label>`).join('');
+$('sfMonths').innerHTML=MONTH_NAMES.map((m,i)=>`<label class="sf-chip sf-month"><input type="checkbox" name="sfMonth" value="${i+1}"><span>${MONTH_SHORT[i]}</span></label>`).join('');
+$('sfExisting').innerHTML=lures.map(l=>`<option value="${l.id}">${escapeHTML(l.name)}</option>`).join('');
+const allYear=$('sfAllYear');
+allYear.addEventListener('change',()=>{form.querySelectorAll('[name=sfMonth]').forEach(c=>{c.checked=false;c.disabled=allYear.checked})});
+function setKind(k){$('fixRow').hidden=k!=='fix';$(k==='fix'?'kindFix':'kindNew').checked=true}
+form.addEventListener('change',e=>{if(e.target.name==='kind')setKind(e.target.value);if(e.target.id==='sfExisting')prefill(Number(e.target.value))});
+function prefill(id){
+const l=lures.find(x=>x.id===id);if(!l)return;
+$('sfName').value=l.name;
+const size=(l.subtitle.match(/[\d.]+\s*(גרם|מ״מ)/)||[''])[0];$('sfSize').value=size;
+form.querySelectorAll('[name=sfType]').forEach(r=>r.checked=r.value===typeOf[l.type]);
+$('sfMethod').value=l.methods.join(' ');
+form.querySelectorAll('[name=sfFish]').forEach(c=>c.checked=l.fish.includes(c.value));
+allYear.checked=!l.months;form.querySelectorAll('[name=sfMonth]').forEach(c=>{c.disabled=!l.months;c.checked=!!l.months&&l.months.includes(Number(c.value))});
+$('sfZone').value=profiles[l.id]?profiles[l.id].water:'';
+$('sfNotes').value='';
+}
+document.addEventListener('click',e=>{const a=e.target.closest('[data-fix]');if(!a)return;const id=Number(a.dataset.fix);setKind('fix');$('sfExisting').value=id;prefill(id);setTimeout(()=>$('sfNotes').focus({preventScroll:true}),400)});
+function collect(){
+const kind=form.kind.value,fix=kind==='fix'?lures.find(x=>x.id===Number($('sfExisting').value)):null;
+const fish=[...form.querySelectorAll('[name=sfFish]:checked')].map(c=>c.value);if($('sfFishOther').value.trim())fish.push($('sfFishOther').value.trim());
+const months=[...form.querySelectorAll('[name=sfMonth]:checked')].map(c=>MONTH_NAMES[Number(c.value)-1]);
+const type=(form.querySelector('[name=sfType]:checked')||{}).value||'';
+const v=id=>$(id).value.trim();
+const lines=[kind==='fix'?`🛠️ *תיקון לדמוי: ${fix?fix.name:''}*`:'🆕 *דמוי חדש לארסנל*','',
+`🎣 דמוי: ${v('sfName')}${v('sfSize')?' ('+v('sfSize')+')':''}`,
+type&&`📦 סוג: ${type}`,
+`🔁 שיטת עבודה: ${v('sfMethod')}`,
+fish.length&&`🐟 דגי מטרה: ${fish.join(', ')}`,
+`📅 עונה: ${allYear.checked?'כל השנה':months.length?months.join(', '):'לא צוין'}`,
+v('sfZone')&&`📍 אזור: ${v('sfZone')}`,
+v('sfNotes')&&`💡 הערות: ${v('sfNotes')}`,
+v('sfFrom')&&`👤 נשלח ע״י: ${v('sfFrom')}`,
+'','(נשלח מהאתר ארסנל הז׳רז׳ור)'].filter(x=>x!==false&&x!==''&&x!==undefined);
+return lines.join('\n').replace(/\n\n\n/g,'\n\n');
+}
+function validate(){
+const err=[];if(!$('sfName').value.trim())err.push('שם הדמוי');if(!$('sfMethod').value.trim())err.push('שיטת עבודה');
+const box=$('sfError');box.hidden=!err.length;box.textContent=err.length?`חסר: ${err.join(' ו')}. אלה שדות חובה.`:'';
+if(err.length)(err[0]==='שם הדמוי'?$('sfName'):$('sfMethod')).focus();
+return !err.length;
+}
+function payload(){
+const kind=form.kind.value,fix=kind==='fix'?lures.find(x=>x.id===Number($('sfExisting').value)):null;
+const fish=[...form.querySelectorAll('[name=sfFish]:checked')].map(c=>c.value);if($('sfFishOther').value.trim())fish.push(...$('sfFishOther').value.split(/[,،]/).map(x=>x.trim()).filter(Boolean));
+const v=id=>$(id).value.trim()||null;
+return {kind,existing_lure:fix?fix.name:null,name:v('sfName'),size:v('sfSize'),lure_type:(form.querySelector('[name=sfType]:checked')||{}).value||null,
+method:v('sfMethod'),fish:fish.slice(0,30),months:allYear.checked?[]:[...form.querySelectorAll('[name=sfMonth]:checked')].map(c=>Number(c.value)),
+all_year:allYear.checked,zone:v('sfZone'),notes:v('sfNotes'),submitted_by:v('sfFrom')};
+}
+const sendBtn=form.querySelector('.sf-send');
+form.addEventListener('submit',async e=>{
+e.preventDefault();if(!validate())return;
+const st=$('sfStatus');
+if($('sfHp').value){st.textContent='הפנייה נשלחה. תודה!';return}// bot trap
+sendBtn.disabled=true;sendBtn.textContent='שולח...';st.textContent='';st.className='sf-status';
+try{
+const r=await fetch(`${SUPABASE_URL}/rest/v1/lure_suggestions`,{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,Prefer:'return=minimal'},body:JSON.stringify(payload())});
+if(!r.ok)throw new Error(r.status);
+form.reset();allYear.dispatchEvent(new Event('change'));setKind('new');
+st.textContent='תודה! הפנייה נשמרה ותיבדק בקרוב.';st.className='sf-status is-ok';
+}catch(err){
+st.textContent='השליחה נכשלה. אפשר לנסות שוב, או להשתמש ב"העתקת הפנייה" ולשלוח בוואטסאפ.';st.className='sf-status is-err';
+}finally{sendBtn.disabled=false;sendBtn.textContent='שליחת הפנייה'}
+});
+$('sfCopy').addEventListener('click',()=>{
+if(!validate())return;const t=collect(),st=$('sfStatus');
+const done=()=>st.textContent='הפנייה הועתקה. אפשר להדביק אותה בכל צ׳אט.';
+try{navigator.clipboard.writeText(t).then(done,()=>fallback())}catch(e){fallback()}
+function fallback(){const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.top='-999px';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done()}catch(e){st.textContent='לא הצלחתי להעתיק.'}ta.remove()}
+});
 })();
