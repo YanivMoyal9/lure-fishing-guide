@@ -1,6 +1,18 @@
 (() => {
   const hero = document.querySelector('.hero-depth');
-  if (!hero || !matchMedia('(hover:hover) and (pointer:fine)').matches || matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  if (!hero || matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  let scrollFrame = 0;
+  const updateScroll = () => {
+    scrollFrame = 0;
+    const rect = hero.getBoundingClientRect();
+    const progress = Math.max(0, Math.min(1, -rect.top / rect.height));
+    hero.style.setProperty('--scroll', progress.toFixed(3));
+  };
+  const scheduleScroll = () => { if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScroll); };
+  window.addEventListener('scroll', scheduleScroll, {passive:true});
+  window.addEventListener('resize', scheduleScroll, {passive:true});
+  updateScroll();
+  if (!matchMedia('(hover:hover) and (pointer:fine)').matches) return;
   let x = 0, y = 0, goalX = 0, goalY = 0, frame = 0;
   const render = () => {
     x += (goalX - x) * .085;
