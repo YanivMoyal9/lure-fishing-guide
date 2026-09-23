@@ -387,9 +387,11 @@ v('sfFrom')&&`👤 נשלח ע״י: ${v('sfFrom')}`,
 return lines.join('\n').replace(/\n\n\n/g,'\n\n');
 }
 function validate(){
-const err=[];if(!$('sfName').value.trim())err.push('שם הדמוי');if(!$('sfMethod').value.trim())err.push('שיטת עבודה');
-const box=$('sfError');box.hidden=!err.length;box.textContent=err.length?`חסר: ${err.join(' ו')}. אלה שדות חובה.`:'';
-if(err.length)(err[0]==='שם הדמוי'?$('sfName'):$('sfMethod')).focus();
+const name=$('sfName').value.trim(),method=$('sfMethod').value.trim(),err=[];let first=null;
+if(!name){err.push('חסר שם הדמוי');first=first||$('sfName')}else if(name.length<2){err.push('שם הדמוי קצר מדי (לפחות 2 תווים)');first=first||$('sfName')}
+if(!method){err.push('חסרה שיטת עבודה');first=first||$('sfMethod')}else if(method.length<3){err.push('שיטת העבודה קצרה מדי (לפחות 3 תווים)');first=first||$('sfMethod')}
+const box=$('sfError');box.hidden=!err.length;box.textContent=err.join(' · ');
+if(first)first.focus();
 return !err.length;
 }
 function payload(){
@@ -408,11 +410,11 @@ if($('sfHp').value){st.textContent='הפנייה נשלחה. תודה!';return}/
 sendBtn.disabled=true;sendBtn.textContent='שולח...';st.textContent='';st.className='sf-status';
 try{
 const r=await fetch(`${SUPABASE_URL}/rest/v1/lure_suggestions`,{method:'POST',headers:{'Content-Type':'application/json',apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,Prefer:'return=minimal'},body:JSON.stringify(payload())});
-if(!r.ok)throw new Error(r.status);
+if(!r.ok){let m='';try{m=(await r.json()).message||''}catch(_){}const e2=new Error(r.status);e2.bad=r.status===400&&/check constraint/.test(m);throw e2}
 form.reset();allYear.dispatchEvent(new Event('change'));setKind('new');
 st.textContent='תודה! הפנייה נשמרה ותיבדק בקרוב.';st.className='sf-status is-ok';
 }catch(err){
-st.textContent='השליחה נכשלה. אפשר לנסות שוב, או להשתמש ב"העתקת הפנייה" ולשלוח בוואטסאפ.';st.className='sf-status is-err';
+st.textContent=err.bad?'אחד השדות לא תקין (ייתכן שהוא קצר או ארוך מדי). בדקו את הפרטים ונסו שוב.':'השליחה נכשלה. אפשר לנסות שוב, או להשתמש ב"העתקת הפנייה" ולשלוח בוואטסאפ.';st.className='sf-status is-err';
 }finally{sendBtn.disabled=false;sendBtn.textContent='שליחת הפנייה'}
 });
 $('sfCopy').addEventListener('click',()=>{

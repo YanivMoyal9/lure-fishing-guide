@@ -21,7 +21,7 @@
 <link rel="preload" as="image" href="assets/hero-full.webp">
 <link rel="stylesheet" href="styles.css?v=4">
 <link rel="stylesheet" href="fixes.css?v=20">
-<script src="script.js?v=12" defer></script>
+<script src="script.js?v=13" defer></script>
 <script src="bubbles.js?v=3" defer></script>
 </head>
 <body>
@@ -77,20 +77,20 @@
 </fieldset>
 <div class="sf-row" id="fixRow" hidden><label class="sf-field"><span class="sf-label">איזה דמוי לתקן?</span><select id="sfExisting"></select></label></div>
 <div class="sf-grid">
-<label class="sf-field"><span class="sf-label">שם הדמוי ודגם <em>*</em></span><input id="sfName" type="text" required placeholder="למשל: Duo Tide Minnow 125" autocomplete="off"></label>
-<label class="sf-field"><span class="sf-label">משקל / גודל</span><input id="sfSize" type="text" placeholder="למשל: 20 גרם · 125 מ״מ" autocomplete="off"></label>
+<label class="sf-field"><span class="sf-label">שם הדמוי ודגם <em>*</em></span><input id="sfName" maxlength="120" type="text" required placeholder="למשל: Duo Tide Minnow 125" autocomplete="off"></label>
+<label class="sf-field"><span class="sf-label">משקל / גודל</span><input id="sfSize" maxlength="60" type="text" placeholder="למשל: 20 גרם · 125 מ״מ" autocomplete="off"></label>
 </div>
 <fieldset class="sf-field"><legend class="sf-label">סוג הדמוי</legend><div class="sf-chips" id="sfType"></div></fieldset>
-<label class="sf-field"><span class="sf-label">שיטת עבודה <em>*</em></span><textarea id="sfMethod" rows="3" required placeholder="איך זורקים ומחזירים: קצב, טוויצ׳ים, עצירות, הקפצות..."></textarea></label>
+<label class="sf-field"><span class="sf-label">שיטת עבודה <em>*</em></span><textarea id="sfMethod" maxlength="1500" rows="3" required placeholder="איך זורקים ומחזירים: קצב, טוויצ׳ים, עצירות, הקפצות..."></textarea></label>
 <fieldset class="sf-field"><legend class="sf-label">דגי מטרה</legend><div class="sf-chips" id="sfFish"></div><input id="sfFishOther" type="text" placeholder="דגים נוספים (לא חובה)" autocomplete="off"></fieldset>
 <fieldset class="sf-field"><legend class="sf-label">עונה</legend>
 <div class="sf-months" id="sfMonths"></div>
 <label class="sf-check"><input type="checkbox" id="sfAllYear"> עובד כל השנה</label></fieldset>
 <div class="sf-grid">
-<label class="sf-field"><span class="sf-label">אזור דיג</span><input id="sfZone" type="text" placeholder="חול, ריף, קצף, מזח..." autocomplete="off"></label>
-<label class="sf-field"><span class="sf-label">השם שלך (לא חובה)</span><input id="sfFrom" type="text" autocomplete="name"></label>
+<label class="sf-field"><span class="sf-label">אזור דיג</span><input id="sfZone" maxlength="120" type="text" placeholder="חול, ריף, קצף, מזח..." autocomplete="off"></label>
+<label class="sf-field"><span class="sf-label">השם שלך (לא חובה)</span><input id="sfFrom" maxlength="80" type="text" autocomplete="name"></label>
 </div>
-<label class="sf-field"><span class="sf-label">הערות</span><textarea id="sfNotes" rows="2" placeholder="צבע מומלץ, תנאי ים, טיפים..."></textarea></label>
+<label class="sf-field"><span class="sf-label">הערות</span><textarea id="sfNotes" maxlength="1500" rows="2" placeholder="צבע מומלץ, תנאי ים, טיפים..."></textarea></label>
 <label class="sf-hp" aria-hidden="true">אל תמלאו שדה זה<input id="sfHp" type="text" tabindex="-1" autocomplete="off"></label>
 <p class="sf-error" id="sfError" role="alert" hidden></p>
 <div class="sf-actions"><button type="submit" class="sf-send">שליחת הפנייה</button><button type="button" class="sf-copy" id="sfCopy">העתקת הפנייה</button><span class="sf-status" id="sfStatus" role="status"></span></div>
