@@ -13,33 +13,25 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Heebo:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="assets/underwater-hero-clean.webp" >
+<link rel="preload" as="image" href="assets/hero-full.webp">
 <link rel="stylesheet" href="styles.css?v=4">
-<link rel="stylesheet" href="fixes.css?v=11">
-<link rel="stylesheet" href="hero3d.css?v=3">
+<link rel="stylesheet" href="fixes.css?v=14">
 <script src="script.js?v=9" defer></script>
-<script src="hero3d.js?v=2" defer></script>
+<script src="three.min.js" defer></script>
+<script src="fish3d.js?v=4" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#catalog">דלג לדמויים</a>
 
 <main id="top">
-<section class="hero hero-depth" aria-labelledby="hero-title">
-  <div class="hero-stage" aria-hidden="true">
-    <div class="hero-depth-image"></div>
-    <div class="hero-sunlight"></div>
-    <div class="hero-waterlight"></div>
-    <div class="hero-bubbles"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-  </div>
-  <div class="container hero-depth-container">
-    <div class="hero-depth-content">
-      <span class="eyebrow"><span class="eyebrow-dot"></span> מדריך שטח לז׳רז׳ור מהחוף</span>
-      <h1 id="hero-title">הדמוי הנכון.<br><em>העבודה הנכונה.</em></h1>
-      <p>איזה דמוי לשים בתיק, איך לעבוד איתו ומתי הוא בעונה. כל דמוי עם הדגמה חיה של הזריקה וההחזרה.</p>
-      <div class="hero-actions"><a class="hero-cta" href="#catalog">לפתוח את הארסנל <span aria-hidden="true">↓</span></a><a class="hero-link" href="#seasons">לוח עונות</a></div>
-    </div>
-  </div>
-  <span class="hero-depth-hint" aria-hidden="true">גללו לגלות עוד <span>↓</span></span>
+<section class="hero hero-v3" id="hero" aria-labelledby="hero-title">
+<div class="hero-bg" aria-hidden="true"></div>
+<div class="container hero-content">
+<span class="eyebrow"><span class="eyebrow-dot"></span> מדריך שטח לז׳רז׳ור מהחוף</span>
+<h1 id="hero-title">הדמוי הנכון.<br><em>העבודה הנכונה.</em></h1>
+<p>איזה דמוי לשים בתיק, איך לעבוד איתו ומתי הוא בעונה. כל דמוי עם הדגמה חיה של הזריקה וההחזרה.</p>
+<a class="hero-cta" href="#catalog">לפתוח את הארסנל <span aria-hidden="true">↓</span></a>
+</div>
 </section>
 
 <section class="finder container" aria-labelledby="finder-title">
