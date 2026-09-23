@@ -66,15 +66,105 @@ const groups=[
 {id:'jig',title:'ג׳יגים',subtitle:'מתכת לזריקה רחוקה · הקפצות ושקיעה',index:'03'},
 {id:'soft',title:'סיליקון',subtitle:'עבודה איטית · תנועה טבעית ליד הקרקעית',index:'04'}
 ];
+// Holds (pauses) inside the retrieve, as fractions of the path. Gaps in a path ("M" moves) add holds automatically.
+const motionHolds={jigPause:[0.46]};
+const paceDuration={'איטי':5600,'בינוני':4600,'מהיר':3800};
+const ROD={butt:[274,70],tip:[252,6]};
 function motionGraphic(lure){
 const p=profiles[lure.id];
 const path=motionPaths[p.motion];
-const [,sx,sy]=path.match(/M\s*([\d.]+)\s+([\d.]+)/);
 return `<div class="motion-panel motion-${p.motion}"><div class="motion-heading"><span>תנועת הדמוי במים</span><strong>${p.label}</strong></div>
-<svg class="motion-graphic" viewBox="0 0 240 72" role="img" aria-label="המחשת תנועה: ${p.label}">
-<path class="water-line" d="M8 12 H232"/><path class="bottom-line" d="M8 61 C50 58 80 64 120 61 S190 59 232 62"/>
-<path class="motion-track" d="${path}"/><circle class="motion-start" cx="${sx}" cy="${sy}" r="4"/>
-</svg><div class="motion-axis"><span>תחילת ההחזרה</span><span>כיוון העבודה ←</span></div></div>`;
+<svg class="motion-graphic" viewBox="0 0 280 72" role="img" aria-label="אנימציה: זריקה והחזרה בשיטת ${p.label}" data-motion="${p.motion}" data-pace="${p.pace}">
+<path class="water-line" d="M4 12 H244"/><path class="bottom-line" d="M4 61 C50 58 80 64 120 61 S190 59 244 62"/>
+<path class="motion-track" d="${path}"/>
+<path class="motion-trail" d="${path.replace(/\sM/g,' L')}"/>
+<circle class="splash" cx="0" cy="12" r="0"/>
+<path class="fishing-line" d=""/>
+<path class="rod" d="M${ROD.butt[0]} ${ROD.butt[1]} Q${ROD.butt[0]-4} 36 ${ROD.tip[0]} ${ROD.tip[1]}"/>
+<g class="lure-glyph"><ellipse rx="6" ry="2.6"/><circle cx="-3.4" cy="-0.4" r="0.9"/></g>
+</svg><div class="motion-axis"><span>הדייג בחוף</span><span>נקודת הנחיתה</span></div></div>`;
+}
+
+/* ---- Casting + retrieve animation ---- */
+const reduceMotion=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+const animated=new Map();
+function setupAnimation(svg){
+const trail=svg.querySelector('.motion-trail');
+const total=trail.getTotalLength();
+// hold points from subpath gaps
+const holds=[...(motionHolds[svg.dataset.motion]||[])];
+const subs=svg.querySelector('.motion-track').getAttribute('d').split(/(?=M)/).filter(Boolean);
+if(subs.length>1){const tmp=document.createElementNS('http://www.w3.org/2000/svg','path');let acc=0;subs.slice(0,-1).forEach(s=>{tmp.setAttribute('d',s);acc+=tmp.getTotalLength();holds.push(Math.min(acc/total,1))})}
+holds.sort((a,b)=>a-b);
+trail.style.strokeDasharray=`${total} ${total}`;
+return {svg,trail,total,holds,start:null,retrieve:paceDuration[svg.dataset.pace]||4600,prevY:null,tipOff:0,
+lure:svg.querySelector('.lure-glyph'),line:svg.querySelector('.fishing-line'),rod:svg.querySelector('.rod'),splash:svg.querySelector('.splash')};
+}
+const CAST=900,HOLD=650,REST=1100;
+function progressAt(a,t){
+// maps elapsed retrieve time (ms) to path fraction, pausing at holds
+let remaining=t,pos=0;
+const moveTime=a.retrieve;
+for(const h of [...a.holds,1]){
+const seg=(h-pos)*moveTime;
+if(remaining<=seg)return pos+remaining/moveTime;
+remaining-=seg;pos=h;
+if(h===1)return 1;
+if(remaining<=HOLD)return pos;
+remaining-=HOLD;
+}
+return 1;
+}
+function drawRod(a,tipX,tipY){
+const [bx,by]=ROD.butt;
+a.rod.setAttribute('d',`M${bx} ${by} Q${bx-4+(tipX-ROD.tip[0])*0.3} 36 ${tipX} ${tipY}`);
+return [tipX,tipY];
+}
+function frame(a,now){
+if(a.start===null)a.start=now;
+const cycle=CAST+a.retrieve+a.holds.length*HOLD+REST;
+const t=(now-a.start)%cycle;
+const start=a.trail.getPointAtLength(0);
+let x,y,angle=0,tip;
+if(t<CAST){
+// cast: rod swings forward, lure flies on an arc to the landing point
+const k=t/CAST,e=1-Math.pow(1-k,2);
+tip=drawRod(a,ROD.tip[0]-10*Math.sin(Math.PI*Math.min(k*1.6,1)),ROD.tip[1]+4*Math.sin(Math.PI*Math.min(k*1.6,1)));
+const [sx,sy]=tip;const ex=start.x,ey=12;
+x=sx+(ex-sx)*e;y=(1-e)*(1-e)*sy+2*(1-e)*e*(-18)+e*e*ey;
+a.trail.style.strokeDashoffset=a.total;
+a.splash.setAttribute('r',0);
+a.prevY=null;a.tipOff=0;
+}else{
+const rt=t-CAST;
+const f=progressAt(a,rt);
+const L=f*a.total;
+const pt=a.trail.getPointAtLength(L),pt2=a.trail.getPointAtLength(Math.min(L+1,a.total));
+x=pt.x;y=pt.y;angle=Math.atan2(pt2.y-pt.y,pt2.x-pt.x)*180/Math.PI;
+if(f>=1){angle=0}
+a.trail.style.strokeDashoffset=a.total-L;
+// splash ring right after landing
+const s=Math.min(rt/500,1);a.splash.setAttribute('cx',start.x);a.splash.setAttribute('r',s<1?2+s*9:0);a.splash.style.opacity=1-s;
+// rod tip reacts to sudden rises (twitches / hops)
+const dy=a.prevY===null?0:a.prevY-y;a.prevY=y;
+a.tipOff=a.tipOff*0.82+Math.max(-3,Math.min(9,dy*2.2))*0.18*4;
+tip=drawRod(a,ROD.tip[0]+a.tipOff*0.5,ROD.tip[1]+a.tipOff);
+}
+a.lure.setAttribute('transform',`translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${(angle+180).toFixed(1)})`);
+const [tx,ty]=tip,mx=(tx+x)/2,my=Math.max(ty,y)+(t<CAST?-4:3);
+a.line.setAttribute('d',`M${tx} ${ty} Q${mx.toFixed(1)} ${my.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)}`);
+}
+let rafId=null;
+function loop(now){animated.forEach(a=>{if(a.visible)frame(a,now)});rafId=requestAnimationFrame(loop)}
+const io='IntersectionObserver' in window?new IntersectionObserver(entries=>entries.forEach(en=>{const a=animated.get(en.target);if(a){a.visible=en.isIntersecting;if(!en.isIntersecting)a.start=null}}),{rootMargin:'80px'}):null;
+function initAnimations(){
+animated.forEach((a,svg)=>io&&io.unobserve(svg));animated.clear();
+document.querySelectorAll('.motion-graphic').forEach(svg=>{
+const a=setupAnimation(svg);animated.set(svg,a);
+if(reduceMotion){a.trail.style.strokeDashoffset=0;const end=a.trail.getPointAtLength(a.total);a.lure.setAttribute('transform',`translate(${end.x} ${end.y}) rotate(180)`);a.line.setAttribute('d',`M${ROD.tip[0]} ${ROD.tip[1]} L${end.x} ${end.y}`);return}
+if(io)io.observe(svg);else a.visible=true;
+});
+if(!reduceMotion&&rafId===null)rafId=requestAnimationFrame(loop);
 }
 function card(lure){
 const s=season(lure);
@@ -116,6 +206,7 @@ el.count.textContent=`${visible.length} מתוך ${lures.length} דמויים`;
 el.empty.hidden=visible.length!==0;
 el.hint.hidden=state.month==='all';
 renderNow();
+initAnimations();
 }
 function setMonth(v){state.month=v;el.month.value=v;render()}
 function reset(){state.type='all';state.fish='all';state.month='all';state.search='';el.fish.value='all';el.month.value='all';el.search.value='';document.querySelectorAll('[data-type]').forEach(b=>{const active=b.dataset.type==='all';b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active))});render()}

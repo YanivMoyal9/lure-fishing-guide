@@ -20,3 +20,15 @@
 .now-text p{font-size:13px}
 .now-button{width:100%;min-height:40px}
 }
+
+/* Animated cast + retrieve (angler on the right, lure comes back toward him) */
+.motion-graphic{transform:none;height:74px}
+.motion-graphic .motion-track{stroke:var(--orange);stroke-opacity:.18;stroke-width:3;stroke-dasharray:3 5}
+.motion-graphic .motion-trail{fill:none;stroke:var(--orange);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.motion-graphic .motion-start{display:none}
+.motion-graphic .rod{fill:none;stroke:var(--navy);stroke-width:2.6;stroke-linecap:round}
+.motion-graphic .fishing-line{fill:none;stroke:#7d9296;stroke-width:.7}
+.motion-graphic .lure-glyph ellipse{fill:var(--teal);stroke:#fff;stroke-width:1}
+.motion-graphic .lure-glyph circle{fill:#fff}
+.motion-graphic .splash{fill:none;stroke:var(--teal);stroke-width:1.2}
+.motion-axis span:last-child{direction:rtl}
