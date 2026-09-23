@@ -52,3 +52,80 @@
 .motion-graphic .ripple{fill:none;stroke:#b4d6d6;stroke-width:.8;stroke-linecap:round}
 .motion-panel.is-top{background:linear-gradient(140deg,#e6f3f4,#f2f9f9)}
 .motion-panel.is-top .motion-heading span{color:#aa522a}
+
+/* ===== Hero v2: bright illustrated coast ===== */
+.hero.hero-v2{position:relative;isolation:isolate;background:#e6f4f1;background-image:none;color:var(--navy-deep);min-height:380px;overflow:hidden;display:flex;align-items:center}
+.hero-v2 .hero-scene{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
+.hero-v2::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(270deg,rgba(246,251,250,.94) 0%,rgba(246,251,250,.78) 34%,rgba(246,251,250,0) 62%)}
+.hero-v2 .hero-content{padding:48px 0 54px}
+.hero-v2 .eyebrow{color:var(--teal-deep);background:#ffffffc9;padding:5px 11px;border-radius:99px;box-shadow:0 2px 10px #0f2f3b12}
+.hero-v2 h1{color:var(--navy-deep);font-size:clamp(38px,4.8vw,62px)}
+.hero-v2 h1 em{color:#c4542c}
+.hero-v2 p{color:#2c4a55;font-size:18px;max-width:470px;line-height:1.55}
+.hero-actions{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:6px}
+.hero-v2 .hero-cta{background:#c4542c;color:#fff;border:0;border-radius:9px;padding:12px 20px;font-size:16px;box-shadow:0 8px 20px #c4542c38}
+.hero-v2 .hero-cta span{color:#fff}
+.hero-v2 .hero-cta:hover{background:#a8441f}
+.hero-link{font-weight:800;color:var(--teal-deep);border-bottom:2px solid currentColor;padding-bottom:2px}
+.hero-waves{animation:heroWaves 14s linear infinite}
+.hero-splash{transform-origin:622px 242px;animation:heroSplash 3.2s ease-out infinite}
+@keyframes heroWaves{to{transform:translateX(120px)}}
+@keyframes heroSplash{0%,55%{opacity:0;transform:scale(.4)}65%{opacity:1}100%{opacity:0;transform:scale(1.5)}}
+@media(max-width:640px){
+.hero.hero-v2{min-height:0}
+.hero-v2::after{background:linear-gradient(180deg,rgba(246,251,250,.92) 0%,rgba(246,251,250,.82) 58%,rgba(246,251,250,.2) 100%)}
+.hero-v2 .hero-content{padding:28px 0 150px}
+.hero-v2 .hero-scene{height:100%}
+.hero-v2 p{font-size:15px}
+.hero-v2 .hero-cta{font-size:15px;padding:11px 16px}
+}
+@media(prefers-reduced-motion:reduce){.hero-waves,.hero-splash{animation:none}}
+
+/* ===== Month bar inside each card ===== */
+.month-bar{display:grid;grid-template-columns:repeat(12,1fr);gap:2px;width:100%;max-width:230px;margin:0 0 11px}
+.month-bar .mb{display:flex;flex-direction:column;align-items:center;gap:2px}
+.month-bar .mb i{display:block;width:100%;height:6px;border-radius:2px;background:#e3ebea}
+.month-bar .mb.on i{background:var(--teal)}
+.month-bar.is-all .mb i{background:#9fcfcc}
+.month-bar .mb.now i{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #c4542c}
+.month-bar .mb b{font:700 9px/1 Assistant,Arial,sans-serif;color:#7b9195}
+.month-bar .mb.now b{color:#c4542c}
+
+/* ===== Season calendar ===== */
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.seasons{margin-top:34px}
+.seasons-heading{display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.seasons h2{font:800 clamp(25px,3vw,36px)/1.2 Heebo,Arial,sans-serif;letter-spacing:-.055em;margin:3px 0 0}
+.seasons-legend{display:flex;align-items:center;gap:6px 8px;flex-wrap:wrap;margin:0;font-size:13px;font-weight:700;color:var(--muted)}
+.lg{display:inline-block;width:18px;height:9px;border-radius:3px;margin-inline-start:6px}
+.lg-in{background:var(--teal)}.lg-all{background:#9fcfcc}.lg-now{background:#fff;box-shadow:inset 0 0 0 2px #c4542c}
+.seasons-scroll{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:15px;box-shadow:0 9px 30px #102f3b0a}
+.seasons-scroll:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.season-table{width:100%;min-width:720px;border-collapse:separate;border-spacing:0}
+.season-table th,.season-table td{padding:0;text-align:center}
+.season-table thead th{position:sticky;top:0;background:#f7faf9;border-bottom:1px solid var(--line)}
+.season-table thead button{width:100%;min-height:40px;border:0;background:none;font:800 13px Assistant,Arial,sans-serif;color:var(--ink);padding:6px 2px;border-radius:6px}
+.season-table thead button:hover{background:#e8f3f2}
+.season-table thead th.is-now button{color:#c4542c}
+.season-table thead th.is-now button::after{content:"החודש";display:block;font-size:9px;font-weight:800;letter-spacing:.03em}
+.season-table thead th.is-sel button{background:var(--navy);color:#fff}
+.season-table .c-name{position:sticky;right:0;z-index:1;background:#fff;text-align:right;padding:8px 14px;min-width:150px;border-left:1px solid #e8efee}
+.season-table thead .c-name{background:#f7faf9;font-size:12px;color:var(--muted);font-weight:800}
+.season-table tbody tr+tr>*{border-top:1px solid #eef3f2}
+.season-table tbody .c-name a{display:block;font:800 14px/1.2 Heebo,Arial,sans-serif;color:var(--navy)}
+.season-table tbody .c-name a:hover span{text-decoration:underline}
+.season-table tbody .c-name small{display:block;font:700 11px Assistant,Arial,sans-serif;color:var(--muted);margin-top:2px}
+.season-table td{height:44px;position:relative}
+.season-table td .cell{display:block;height:14px;margin:0}
+.season-table td.in .cell{background:var(--teal)}
+.season-table td.all .cell{background:#9fcfcc}
+.season-table td .cell.start{border-radius:0 7px 7px 0;margin-right:5px}
+.season-table td .cell.end{border-radius:7px 0 0 7px;margin-left:5px}
+.season-table td .cell.start.end{border-radius:7px}
+.season-table td.is-now{background:#fff4ee}
+.season-table td.is-now::before{content:"";position:absolute;inset:0 50%;border-inline-start:2px dashed #e7a384;pointer-events:none}
+.season-table td.is-sel{background:#e8f3f2}
+.season-table .c-empty{padding:18px;color:var(--muted)}
+.seasons-tip{margin:9px 2px 0;font-size:13px;color:var(--muted)}
+.lure-card:target{box-shadow:0 0 0 3px #c4542c,0 16px 35px #10374616}
+@media(max-width:640px){.seasons{margin-top:26px}.season-table .c-name{min-width:118px;padding:8px 10px}.season-table tbody .c-name a{font-size:13px}}

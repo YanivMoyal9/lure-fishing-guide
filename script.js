@@ -260,13 +260,29 @@ if(io)io.observe(svg);else a.visible=true;
 });
 if(!reduceMotion&&rafId===null)rafId=requestAnimationFrame(loop);
 }
+function monthBar(lure){
+const label=lure.months?`עונה: ${lure.months.map(m=>MONTH_NAMES[m-1]).join(', ')}`:'עובד כל השנה';
+return `<div class="month-bar${lure.months?'':' is-all'}" role="img" aria-label="${label}">${MONTH_SHORT.map((m,i)=>`<span class="mb${!lure.months||lure.months.includes(i+1)?' on':''}${i+1===NOW?' now':''}"><i></i><b>${m.replace('׳','')[0]}</b></span>`).join('')}</div>`;
+}
+function renderCalendar(list){
+const t=document.querySelector('#seasonTable');if(!t)return;
+const sel=state.month==='all'?null:Number(state.month);
+const head=`<caption class="sr-only">לוח עונות: באילו חודשים כל דמוי בעונה</caption><thead><tr><th scope="col" class="c-name">דמוי</th>${MONTH_NAMES.map((m,i)=>`<th scope="col" class="c-m${i+1===NOW?' is-now':''}${i+1===sel?' is-sel':''}"><button type="button" data-month="${i+1}" aria-pressed="${i+1===sel}" aria-label="סנן לפי ${m}">${MONTH_SHORT[i]}</button></th>`).join('')}</tr></thead>`;
+const rows=list.map(l=>{
+const cells=MONTH_NAMES.map((m,i)=>{const on=!l.months||l.months.includes(i+1);const cls=[l.months?(on?'in':'out'):'all',i+1===NOW?'is-now':'',i+1===sel?'is-sel':''].join(' ');
+const prev=i>0&&(!l.months||l.months.includes(i)),next=i<11&&(!l.months||l.months.includes(i+2));
+return `<td class="${cls}"><span class="cell${on&&!prev?' start':''}${on&&!next?' end':''}"></span><span class="sr-only">${on?'בעונה':'לא בעונה'}</span></td>`}).join('');
+return `<tr><th scope="row" class="c-name"><a href="#card-${l.id}"><span lang="en">${escapeHTML(l.name.replace(/^(Ima|Bassday|Major Craft|Zeake|Fiiish|Ragot) /,''))}</span><small>${l.typeLabel}${l.months?'':' · כל השנה'}</small></a></th>${cells}</tr>`}).join('');
+t.innerHTML=head+`<tbody>${rows||`<tr><td colspan="13" class="c-empty">אין דמויים בסינון הזה</td></tr>`}</tbody>`;
+if(!renderCalendar.centered){renderCalendar.centered=true;requestAnimationFrame(()=>{const sc=t.closest('.seasons-scroll'),th=t.querySelector('th.is-now');if(!sc||!th||sc.scrollWidth<=sc.clientWidth)return;const a=sc.getBoundingClientRect(),b=th.getBoundingClientRect();const nw=t.querySelector('thead .c-name').offsetWidth;sc.scrollLeft+=(b.left+b.width/2)-(a.left+(a.width-nw)/2)})}
+}
 function card(lure){
 const s=season(lure);
 const p=profiles[lure.id];
 const shareText=`🎣 ${lure.name} — ${lure.subtitle}\n🐟 דגי מטרה: ${lure.fish.join(', ')}\n🔁 שיטת עבודה: ${lure.methods.join(' ')}\n📅 עונה: ${s.share}${lure.note?`\n💡 ${lure.note}`:''}\n${location.href.split('#')[0]}`;
-return `<article class="lure-card" aria-labelledby="lure-${lure.id}">
+return `<article class="lure-card" id="card-${lure.id}" aria-labelledby="lure-${lure.id}">
 <div class="card-top"><div class="card-visual"><span class="card-index">#${String(lure.id).padStart(2,'0')}</span><img src="assets/lures/${lure.image}" alt="דמוי ${escapeHTML(lure.name)}" width="500" height="312" loading="lazy" decoding="async"></div>
-<div class="card-identity"><div class="card-badges"><span class="card-type">${lure.typeLabel}</span>${s.badges.map(b=>`<span class="season-badge ${b.className}">${b.text}</span>`).join('')}</div><h3 id="lure-${lure.id}" lang="en">${escapeHTML(lure.name)}</h3><p class="card-subtitle">${lure.subtitle}</p><div class="fish-tags">${lure.fish.map(f=>`<span>${f}</span>`).join('')}</div></div></div>
+<div class="card-identity"><div class="card-badges"><span class="card-type">${lure.typeLabel}</span>${s.badges.map(b=>`<span class="season-badge ${b.className}">${b.text}</span>`).join('')}</div><h3 id="lure-${lure.id}" lang="en">${escapeHTML(lure.name)}</h3><p class="card-subtitle">${lure.subtitle}</p>${monthBar(lure)}<div class="fish-tags">${lure.fish.map(f=>`<span>${f}</span>`).join('')}</div></div></div>
 ${motionGraphic(lure)}
 <div class="method-block"><span class="method-title">כך עובדים איתו</span><ol class="method-steps">${lure.methods.map((m,i)=>`<li><span class="step-num">${i+1}</span><span>${m}</span></li>`).join('')}</ol></div>
 <div class="card-bottom"><div class="stat"><span>קצב</span><strong>${p.pace}</strong><span class="pace-bars pace-${p.pace==='איטי'?1:p.pace==='בינוני'?2:3}" aria-hidden="true"><i></i><i></i><i></i></span></div><div class="stat"><span>אזור</span><strong>${p.water}</strong></div><a class="share-link" href="https://wa.me/?text=${encodeURIComponent(shareText)}" target="_blank" rel="noopener noreferrer" aria-label="שלח את ${escapeHTML(lure.name)} בוואטסאפ">שלח בוואטסאפ ↗</a></div>
@@ -300,6 +316,7 @@ el.count.textContent=`${visible.length} מתוך ${lures.length} דמויים`;
 el.empty.hidden=visible.length!==0;
 el.hint.hidden=state.month==='all';
 renderNow();
+renderCalendar(lures.filter(l=>(state.type==='all'||l.type===state.type)&&(state.fish==='all'||l.fish.includes(state.fish))&&(!q||[l.name,l.subtitle,l.typeLabel,...l.fish].join(' ').toLocaleLowerCase('he').includes(q))));
 initAnimations();
 }
 function setMonth(v){state.month=v;el.month.value=v;render()}
@@ -309,6 +326,7 @@ el.fish.addEventListener('change',()=>{state.fish=el.fish.value;render()});
 el.month.addEventListener('change',()=>setMonth(el.month.value));
 el.search.addEventListener('input',()=>{state.search=el.search.value;render()});
 if(el.now)el.now.addEventListener('click',e=>{if(e.target.closest('#nowButton'))setMonth(state.month===String(NOW)?'all':String(NOW))});
+document.querySelector('#seasonTable')?.addEventListener('click',e=>{const b=e.target.closest('[data-month]');if(b)setMonth(state.month===b.dataset.month?'all':b.dataset.month)});
 document.querySelector('#resetFilters').addEventListener('click',reset);
 document.querySelector('#emptyReset').addEventListener('click',reset);
 render();
