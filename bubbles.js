@@ -26,11 +26,14 @@ for(let i=0;i<N;i++)bubbles.push(spawn({},true));
 // occasional clusters rising from the reef
 function burst(){const x=.05+Math.random()*.85;for(let i=0;i<6;i++){const b=bubbles[Math.floor(Math.random()*N)];spawn(b,false);b.x=x+(Math.random()-.5)*.02;b.y=1+Math.random()*.05}}
 function layout(){
-const r=holder.getBoundingClientRect();
+// untransformed layout size of the photo box (ignores the parallax scale)
+const w=holder.clientWidth||holder.offsetWidth,h=holder.clientHeight||holder.offsetHeight;
+if(!w||!h)return;
 dpr=Math.min(window.devicePixelRatio||1,2);
-W=Math.max(1,r.width);H=Math.max(1,Math.min(r.height,r.width/1.5));
-canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
-canvas.style.height=H+'px';
+W=w;H=h;
+const cw=Math.round(W*dpr),ch=Math.round(H*dpr);
+if(canvas.width!==cw||canvas.height!==ch){canvas.width=cw;canvas.height=ch}
+canvas.style.width=W+'px';canvas.style.height=H+'px';
 ctx.setTransform(dpr,0,0,dpr,0,0);
 }
 function draw(t,dt){
@@ -58,5 +61,8 @@ requestAnimationFrame(frame);
 }
 new IntersectionObserver(es=>{visible=es[0].isIntersecting;last=performance.now()}).observe(hero);
 window.addEventListener('resize',layout,{passive:true});
+window.addEventListener('load',layout);
+if(window.ResizeObserver)new ResizeObserver(layout).observe(holder);
+setTimeout(layout,600);
 layout();requestAnimationFrame(frame);
 })();
