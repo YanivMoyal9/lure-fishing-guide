@@ -2,14 +2,11 @@
 
 אתר סטטי בעברית לדמויי ז׳רז׳ור מהחוף. מותאם לטלפון, לטאבלט ולמחשב; אין צורך בהתקנה, בשרת או בתהליך build.
 
-## העלאה ל־GitHub Pages
+## האתר החי
 
-1. חלץ את קובץ ה־ZIP.
-2. צור מאגר ציבורי **חדש** בשם `lure-fishing-guide` (בלי לשנות את המאגר הקיים `lure-fishing`) והעלה את **תוכן התיקייה** לשורש המאגר החדש: הקבצים `index.html`, `styles.css`, `script.js`, `.nojekyll`, `README.md` והתיקייה `assets`.
-3. במאגר GitHub פתח **Settings → Pages**. תחת **Build and deployment** בחר **Deploy from a branch**, ענף `main`, תיקייה `/ (root)` ולחץ **Save**.
-4. לאחר הפרסום, האתר החדש יהיה בכתובת `https://yanivmoyal9.github.io/lure-fishing-guide/` אם שם המאגר וחשבון GitHub הם כפי שמופיעים כאן. האתר הישן בכתובת `/lure-fishing/` יישאר ללא שינוי.
+**https://yanivmoyal9.github.io/lure-fishing-guide/**
 
-האתר משתמש בנתיבים יחסיים כדי לפעול גם תחת תת־הנתיב של GitHub Pages. אפשר לפתוח את `index.html` מקומית לבדיקה מהירה; השיתוף לוואטסאפ יכלול את כתובת האתר לאחר הפרסום.
+האתר מתפרסם אוטומטית מ־`main` בתיקיית השורש באמצעות GitHub Pages. המאגר הקיים `lure-fishing` והאתר בכתובת `/lure-fishing/` נפרדים ממנו. האתר משתמש בנתיבים יחסיים כדי לפעול תחת תת־הנתיב של GitHub Pages. אפשר לפתוח את `index.html` מקומית לבדיקה מהירה.
 
 ## עריכה
 
