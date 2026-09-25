@@ -228,3 +228,6 @@ html[dir=rtl] .fish-cal[open] summary::before{transform:rotate(-90deg)}
 .mb-track .mb.pk,.month-bar.is-all .mb-track .mb.pk{background:#c4542c}
 .mb-caption .mb-pk{color:#9a3a14}
 .mb-caption b{flex-wrap:wrap}
+/* type chips: wrap inside the panel instead of a side-scrolling strip */
+.type-list{flex-wrap:wrap;overflow:visible!important;margin-inline:0!important;padding-inline:0!important}
+@media(max-width:640px){.type-list{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.type-list .filter-chip{padding:7px 6px;white-space:normal;line-height:1.15}}
