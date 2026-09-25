@@ -70,9 +70,6 @@ return `<details class="fish-cal" id="fishCal"><summary><span>לוח עונות 
 const el={grid:document.querySelector('#cardGrid'),count:document.querySelector('#resultCount'),empty:document.querySelector('#emptyState'),fish:document.querySelector('#fishFilter'),month:document.querySelector('#monthFilter'),search:document.querySelector('#searchFilter'),hint:document.querySelector('#seasonHint'),now:document.querySelector('#nowStrip')};
 const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fishNames=[...new Set(lures.flatMap(l=>l.fish))].sort((a,b)=>a.localeCompare(b,'he'));
-fishNames.forEach(name=>el.fish.add(new Option(name,name)));
-const nowOption=el.month.querySelector(`option[value="${NOW}"]`);
-if(nowOption)nowOption.textContent=`${MONTH_NAMES[NOW-1]} (החודש)`;
 
 const worksIn=(lure,month)=>!lure.months||lure.months.includes(month);
 function nextStart(lure){let m=NOW;for(let i=0;i<12;i++){m=m%12+1;if(lure.months.includes(m))return m}return null}
@@ -346,7 +343,10 @@ const sel=state.month==='all'?null:Number(state.month);
 const months=`<div class="now-months" role="group" aria-label="בחירת חודש">${MONTH_SHORT.map((m,i)=>{const n=i+1;return `<button type="button" class="nm${n===NOW?' is-now':''}${n===sel?' is-sel':''}" data-month="${n}" aria-pressed="${n===sel}" aria-label="${MONTH_NAMES[i]}${n===NOW?' (החודש)':''}">${m}</button>`}).join('')}</div>`;
 const fm=refMonth(),inFish=FISH.filter(f=>fishStatus(f.k,fm)!=='off').sort((a,b)=>(fishStatus(a.k,fm)==='peak'?0:1)-(fishStatus(b.k,fm)==='peak'?0:1));
 const fishLine=`<p class="now-fish"><span>דגים בעונה ב${MONTH_NAMES[fm-1]}:</span> ${inFish.map(f=>fishStatus(f.k,fm)==='peak'?`<b class="pk">${f.label} <em>שיא</em></b>`:f.label).join(' · ')}</p>`;
-el.now.innerHTML=`<div class="now-main"><div class="now-text"><span class="now-label">מה עובד ב${MONTH_NAMES[NOW-1]}</span><p>${parts.join(' · ')}</p>${fishLine}</div><button type="button" class="now-button" id="nowButton" aria-pressed="${active}">${active?'הצג את כל השנה':'הצג רק מה שעובד עכשיו'}</button></div>${months}`;
+const fishChips=`<div class="now-fishes" role="group" aria-label="בחירת דג מטרה"><span class="nf-label">דג מטרה</span><div class="nf-list">${fishNames.map(n=>{const st=fishStatus(n,fm)||'none';const on=state.fish===n;return `<button type="button" class="nf is-${st}${on?' is-sel':''}" data-fish="${escapeHTML(n)}" aria-pressed="${on}" title="${escapeHTML(fishTitle(n))}">${escapeHTML(n)}${st==='peak'?'<em>שיא</em>':''}</button>`}).join('')}</div></div>`;
+const selF=state.fish!=='all'&&fishInfo(state.fish);const fst=selF&&fishStatus(selF.k,fm);
+const fishNote=selF?`<p class="nf-note is-${fst}">${escapeHTML(fishTitle(selF.k))} — ${fst==='peak'?'בשיא העונה':fst==='in'?'בעונה':'מחוץ לעונה'} ב${MONTH_NAMES[fm-1]}</p>`:(state.fish!=='all'?`<p class="nf-note">מוצגים הדמויים ל${escapeHTML(state.fish)}</p>`:'');
+el.now.innerHTML=`<div class="now-main"><div class="now-text"><span class="now-label">מה עובד ב${MONTH_NAMES[NOW-1]}</span><p>${parts.join(' · ')}</p></div><button type="button" class="now-button" id="nowButton" aria-pressed="${active}">${active?'הצג את כל השנה':'הצג רק מה שעובד עכשיו'}</button></div>${months}${fishChips}${fishNote}`;
 const wrap=document.getElementById('fishCalWrap');if(wrap){const was=wrap.querySelector('details');const open=was?was.open:false;wrap.innerHTML=fishCalendar();if(open)wrap.querySelector('details').open=true}
 }
 function render(){
@@ -360,17 +360,15 @@ return `<section class="lure-group" aria-labelledby="group-${group.id}"><div cla
 el.count.textContent=`${visible.length} מתוך ${lures.length} דמויים`;
 el.empty.hidden=visible.length!==0;
 el.hint.hidden=state.month==='all';
-{const fh=document.getElementById('fishHint');if(fh){const f=state.fish!=='all'&&fishInfo(state.fish);fh.hidden=!f;if(f){const st=fishStatus(f.k,refMonth());fh.className='fish-hint is-'+st;fh.textContent=`${fishTitle(f.k)} — ${st==='peak'?'בשיא העונה':st==='in'?'בעונה':'מחוץ לעונה'} ב${MONTH_NAMES[refMonth()-1]}`}}}
 renderNow();
 initAnimations();
 }
-function setMonth(v){state.month=v;el.month.value=v;render()}
-function reset(){state.type='all';state.fish='all';state.month='all';state.search='';el.fish.value='all';el.month.value='all';el.search.value='';document.querySelectorAll('[data-type]').forEach(b=>{const active=b.dataset.type==='all';b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active))});render()}
+function setMonth(v){state.month=v;render()}
+function setFish(v){state.fish=v;render()}
+function reset(){state.type='all';state.fish='all';state.month='all';state.search='';el.search.value='';document.querySelectorAll('[data-type]').forEach(b=>{const active=b.dataset.type==='all';b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active))});render()}
 document.querySelector('#typeFilters').addEventListener('click',event=>{const button=event.target.closest('[data-type]');if(!button)return;state.type=button.dataset.type;document.querySelectorAll('[data-type]').forEach(b=>{const active=b===button;b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active))});render()});
-el.fish.addEventListener('change',()=>{state.fish=el.fish.value;render()});
-el.month.addEventListener('change',()=>setMonth(el.month.value));
 el.search.addEventListener('input',()=>{state.search=el.search.value;render()});
-if(el.now)el.now.addEventListener('click',e=>{if(e.target.closest('#nowButton'))return setMonth(state.month===String(NOW)?'all':String(NOW));const m=e.target.closest('[data-month]');if(m)setMonth(state.month===m.dataset.month?'all':m.dataset.month)});
+if(el.now)el.now.addEventListener('click',e=>{if(e.target.closest('#nowButton'))return setMonth(state.month===String(NOW)?'all':String(NOW));const m=e.target.closest('[data-month]');if(m)return setMonth(state.month===m.dataset.month?'all':m.dataset.month);const f=e.target.closest('[data-fish]');if(f)setFish(state.fish===f.dataset.fish?'all':f.dataset.fish)});
 document.querySelector('#resetFilters').addEventListener('click',reset);
 document.querySelector('#emptyReset').addEventListener('click',reset);
 render();

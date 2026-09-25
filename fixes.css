@@ -209,3 +209,18 @@ html[dir=rtl] .fish-cal[open] summary::before{transform:rotate(-90deg)}
 .fc-range{grid-column:1/-1;margin-top:-2px}
 .fc-head .fc-track span{font-size:9px}
 }
+/* ---- Fish chips in the strip (replace the old dropdowns) ---- */
+.now-fishes{display:flex;align-items:flex-start;gap:10px}
+.nf-label{flex:none;font-size:12px;font-weight:800;color:#f4996c;padding-top:10px;min-width:52px}
+.nf-list{display:flex;flex-wrap:wrap;gap:5px;flex:1}
+.nf{position:relative;display:inline-flex;align-items:center;gap:5px;min-height:34px;padding:4px 11px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#cfe2e3;border-radius:7px;font:800 13px Assistant,Arial,sans-serif;cursor:pointer}
+.nf:hover{background:rgba(255,255,255,.14);color:#fff}
+.nf.is-in{border-color:rgba(111,211,201,.55);color:#e9fbf8}
+.nf.is-peak{border-color:#f4996c;color:#fff}
+.nf.is-off{opacity:.5}
+.nf em{font-style:normal;font-size:10px;background:#c4542c;color:#fff;border-radius:4px;padding:1px 4px;line-height:1.3}
+.nf.is-sel{background:#fff;color:var(--navy-deep,#0a2a36);border-color:#fff;opacity:1;outline:2px solid #fff;outline-offset:1px}
+.nf-note{margin:0;font-size:13px;font-weight:700;padding:8px 12px;border-radius:8px;background:rgba(111,211,201,.14);color:#dff7f3}
+.nf-note.is-peak{background:rgba(244,153,108,.18);color:#ffd9c4}
+.nf-note.is-off{background:rgba(255,255,255,.07);color:#b9cbcc}
+@media(max-width:640px){.now-fishes{flex-direction:column;gap:6px}.nf-label{padding-top:0}.nf{min-height:38px;padding:4px 12px}}
