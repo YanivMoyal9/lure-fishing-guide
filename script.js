@@ -6,7 +6,7 @@ const lures = [
 {id:5,name:'Ima Issen 45S',type:'minnow',typeLabel:'מינו שוקע',image:'ima-issen-45s.webp',subtitle:'45 מ״מ · לריפים',fish:['סרגוס','לוקוס','כחילה','צ׳יפורה'],methods:['גלגול רציף במהירות בינונית.','לעבוד באזורי ריף עם קצף וסלעים.'],preview:'גלגול בינוני באזורי קצף וסלעים',area:'ריפים',months:null},
 {id:6,name:'Ima Sukari 37S',type:'minnow',typeLabel:'מינו שוקע',image:'ima-sukari-37s.webp',subtitle:'37 מ״מ · אולטרה לייט',fish:['סרגוס','צ׳יפורה','כחילה'],methods:['גלגול רציף בקצב בינוני.','להוסיף טוויצ׳ים קטנים מדי פעם.'],preview:'גלגול בינוני וטוויצ׳ים קטנים',area:'ריפים או חוף חולי',months:[3,4,5,6,7,8,9],seasonName:'עונת האולטרה לייט'},
 {id:7,name:'Major Craft Jigpara TG',type:'jig',typeLabel:'ג׳יג',image:'jigpara-tg-14g.webp',subtitle:'14 גרם · טונגסטן',fish:['טרכון','גומבר','חניתן','כחילה','טונית'],methods:['לזרוק למרחק הרצוי; המבנה הקומפקטי והטונגסטן מסייעים לזריקה רחוקה.','לתת לג׳יג לשקוע לעומק הרצוי ואז לגלגל עם הקפצות.'],preview:'זריקה רחוקה וגלגול עם הקפצות',area:'מהחוף',months:null},
-{id:8,name:'Zeake R Sardine',type:'jig',typeLabel:'ג׳יג',image:'zeake-r-sardine-20g.webp',subtitle:'20 גרם · מומלץ בצבע זברה גלואו',fish:['טרכון','חניתן','פלמידה','טונית','ביבי אינטיאס'],methods:['לבצע שתיים עד שלוש הקפצות.','לעצור, לגלגל ולחזור על הרצף.'],preview:'2–3 הקפצות, עצירה וגלגול',area:'מהחוף',months:null},
+{id:8,name:'Zeake R Sardine',type:'jig',typeLabel:'ג׳יג',image:'zeake-r-sardine-20g.webp',subtitle:'20 גרם · מומלץ בצבע זברה גלואו',fish:['טרכון','חניתן','פלמידה','טונית','בייבי אנטיאס'],methods:['לבצע שתיים עד שלוש הקפצות.','לעצור, לגלגל ולחזור על הרצף.'],preview:'2–3 הקפצות, עצירה וגלגול',area:'מהחוף',months:null},
 {id:9,name:'Fiiish Black Minnow Candy',type:'soft',typeLabel:'סיליקון',image:'black-minnow-candy.webp',subtitle:'10 גרם · גלואו',fish:['לברק','לוקוס'],methods:['לזרוק ולהמתין שהדמוי ירד לקרקעית.','שלושה גלגולים, עצירה, וחזרה על הרצף. המטרה היא לעבוד קרוב לקרקעית.'],preview:'קרוב לקרקעית: שלושה גלגולים ועצירה',area:'קרוב לקרקעית',months:null},
 {id:10,name:'Fiiish Black Minnow Red Head',type:'soft',typeLabel:'סיליקון',image:'black-minnow-red-head.webp',subtitle:'10 גרם · ראש אדום',fish:['לברק','לוקוס'],methods:['לזרוק ולהמתין שהדמוי ירד לקרקעית.','שלושה גלגולים, עצירה, וחזרה על הרצף.'],preview:'שלושה גלגולים ועצירה ליד הקרקעית',area:'קרוב לקרקעית',note:'הראש האדום הוא צבע בולט לימים עם מים עכורים.',months:null},
 {id:11,name:'Ragot Raglou Hybrid',type:'soft',typeLabel:'סיליקון',image:'raglou-hybrid.webp',subtitle:'4.5 גרם · זנב פדל',fish:['לברק','לוקוס','טרכון'],methods:['גלגול רצוף ואיטי.','תנועת הזנב נוצרת בזמן הגלגול; אין צורך להוסיף הרבה אקשן.'],preview:'גלגול איטי ורצוף',area:'לפי עומק הזריקה',months:[11,12,1,2,3,4,5,6,7],seasonName:'עונת הלברקים'}
@@ -17,6 +17,56 @@ const MONTH_SHORT=['ינו׳','פבר׳','מרץ','אפר׳','מאי','יוני'
 const NOW=new Date().getMonth()+1;
 
 const state={type:'all',fish:'all',month:'all',search:''};
+/* ---- Fish seasons (Israeli shore, as checked by the site owner). m = season, p = peak; ranges wrap over the new year ---- */
+const span=(a,b)=>{const r=[];let m=a;for(;;){r.push(m);if(m===b)break;m=m%12+1}return r};
+const ALL=span(1,12);
+const FISH=[
+{k:'סרגוס',label:'סרגוסים',m:ALL,p:span(5,8)},
+{k:'מוסר',label:'מוסרים',m:span(6,10)},
+{k:'בן גוריון',label:'בן גוריון',m:span(6,10)},
+{k:'אריען',label:'אריענים',m:span(8,1)},
+{k:'חניתן',label:'חניתנים',m:span(6,10)},
+{k:'בייבי אנטיאס',label:'בייבי אנטיאס',m:span(8,9)},
+{k:'טרכון',label:'טרכונים',m:span(5,10)},
+{k:'טלוויזיה',label:'טלוויזיות',m:span(6,9),note:'עד תחילת ספטמבר'},
+{k:'גומבר',label:'גומברים',m:ALL,p:[6,10,11,12,1]},
+{k:'קלמרי',label:'קלמארי',m:span(10,6)},
+{k:'אנטיאס',label:'אנטיאסים',m:span(9,3)},
+{k:'דוראדו',label:'דוראדו',m:span(9,3)},
+{k:'פלמידה',label:'פלמידה',m:span(9,3),p:[1,2]},
+{k:'לברק',label:'לברקים',m:span(11,5),p:[3]},
+{k:'לוקוס',label:'לוקוסים',m:ALL,p:[12,1,2]},
+{k:'טונית',label:'טוניות',m:span(12,3)},
+{k:'ברקודה',label:'ברקודות',m:span(10,5),p:[12,1,2]}
+];
+const fishInfo=name=>FISH.find(f=>f.k===name);
+function fishStatus(name,month){const f=fishInfo(name);if(!f)return null;if(f.p&&f.p.includes(month))return 'peak';return f.m.includes(month)?'in':'off'}
+// compact text for a month list, e.g. [6,10,11,12,1] -> "יוני, אוק׳–ינו׳"
+function monthsText(list){
+if(list.length===12)return 'כל השנה';
+const set=new Set(list),runs=[];
+[...set].filter(m=>!set.has(m===1?12:m-1)).forEach(a=>{let b=a;while(set.has(b%12+1)&&b%12+1!==a)b=b%12+1;runs.push([a,b])});
+runs.sort((x,y)=>list.indexOf(x[0])-list.indexOf(y[0]));
+return runs.map(([a,b])=>a===b?MONTH_NAMES[a-1]:`${MONTH_SHORT[a-1]}–${MONTH_SHORT[b-1]}`).join(', ');
+}
+function fishTitle(name){const f=fishInfo(name);if(!f)return name;return `${f.label}: ${monthsText(f.m)}${f.note?' ('+f.note+')':''}${f.p?' · שיא: '+monthsText(f.p):''}`}
+const refMonth=()=>state.month==='all'?NOW:Number(state.month);
+function fishTag(name){
+const st=fishStatus(name,refMonth());
+const cls=st==='peak'?' is-peak':st==='in'?' is-in':st==='off'?' is-off':'';
+const extra=st==='peak'?'<em>שיא</em>':'';
+return `<span class="ft${cls}" title="${escapeHTML(fishTitle(name))}">${escapeHTML(name)}${extra}</span>`;
+}
+function fishCalendar(){
+const cur=refMonth();
+const order=[...FISH].sort((a,b)=>{const r=x=>({peak:0,in:1,off:2})[fishStatus(x.k,cur)];return r(a)-r(b)});
+const rows=order.map(f=>{const st=fishStatus(f.k,cur);
+const cells=MONTH_NAMES.map((mn,i)=>{const m=i+1;const c=f.p&&f.p.includes(m)?' pk':f.m.includes(m)?' on':'';return `<span class="fc-m${c}${m===cur?' cur':''}" title="${mn}"></span>`}).join('');
+return `<li class="fc-row is-${st}"><span class="fc-name">${f.label}</span><span class="fc-track" aria-hidden="true">${cells}</span><span class="fc-range">${monthsText(f.m)}${f.note?' <small>('+f.note+')</small>':''}${f.p?` · <b>שיא ${monthsText(f.p)}</b>`:''}</span></li>`}).join('');
+const head=MONTH_SHORT.map((m,i)=>`<span class="${i+1===cur?'cur':''}">${m.replace('׳','')}</span>`).join('');
+return `<details class="fish-cal" id="fishCal"><summary><span>לוח עונות הדגים</span><small>${FISH.length} דגים · מה בעונה ב${MONTH_NAMES[cur-1]} ומתי השיא</small></summary><div class="fc-legend"><span><i class="lg-pk"></i>שיא</span><span><i class="lg-on"></i>בעונה</span><span><i class="lg-off"></i>מחוץ לעונה</span></div><div class="fc-head"><span></span><span class="fc-track">${head}</span><span></span></div><ul class="fc-list">${rows}</ul></details>`;
+}
+
 const el={grid:document.querySelector('#cardGrid'),count:document.querySelector('#resultCount'),empty:document.querySelector('#emptyState'),fish:document.querySelector('#fishFilter'),month:document.querySelector('#monthFilter'),search:document.querySelector('#searchFilter'),hint:document.querySelector('#seasonHint'),now:document.querySelector('#nowStrip')};
 const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fishNames=[...new Set(lures.flatMap(l=>l.fish))].sort((a,b)=>a.localeCompare(b,'he'));
@@ -272,7 +322,7 @@ const p=profiles[lure.id];
 const shareText=`🎣 ${lure.name} — ${lure.subtitle}\n🐟 דגי מטרה: ${lure.fish.join(', ')}\n🔁 שיטת עבודה: ${lure.methods.join(' ')}\n📅 עונה: ${s.share}${lure.note?`\n💡 ${lure.note}`:''}\n${location.href.split('#')[0]}`;
 return `<article class="lure-card" id="card-${lure.id}" aria-labelledby="lure-${lure.id}">
 <div class="card-top"><div class="card-visual"><span class="card-index">#${String(lure.id).padStart(2,'0')}</span><img src="assets/lures/${lure.image}" alt="דמוי ${escapeHTML(lure.name)}" width="500" height="312" loading="lazy" decoding="async"></div>
-<div class="card-identity"><div class="card-badges"><span class="card-type">${lure.typeLabel}</span>${s.badges.map(b=>`<span class="season-badge ${b.className}">${b.text}</span>`).join('')}</div><h3 id="lure-${lure.id}" lang="en">${escapeHTML(lure.name)}</h3><p class="card-subtitle">${lure.subtitle}</p>${monthBar(lure)}<div class="fish-tags">${lure.fish.map(f=>`<span>${f}</span>`).join('')}</div></div></div>
+<div class="card-identity"><div class="card-badges"><span class="card-type">${lure.typeLabel}</span>${s.badges.map(b=>`<span class="season-badge ${b.className}">${b.text}</span>`).join('')}</div><h3 id="lure-${lure.id}" lang="en">${escapeHTML(lure.name)}</h3><p class="card-subtitle">${lure.subtitle}</p>${monthBar(lure)}<div class="fish-tags">${lure.fish.map(fishTag).join('')}</div></div></div>
 ${motionGraphic(lure)}
 <div class="method-block"><span class="method-title">כך עובדים איתו</span><ol class="method-steps">${lure.methods.map((m,i)=>`<li><span class="step-num">${i+1}</span><span>${m}</span></li>`).join('')}</ol></div>
 <div class="card-bottom"><div class="stat"><span>קצב</span><strong>${p.pace}</strong><span class="pace-bars pace-${p.pace==='איטי'?1:p.pace==='בינוני'?2:3}" aria-hidden="true"><i></i><i></i><i></i></span></div><div class="stat"><span>אזור</span><strong>${p.water}</strong></div><a class="fix-link" href="#suggest" data-fix="${lure.id}">הצעת תיקון</a><a class="share-link" href="https://wa.me/?text=${encodeURIComponent(shareText)}" target="_blank" rel="noopener noreferrer" aria-label="שלח את ${escapeHTML(lure.name)} בוואטסאפ">שלח בוואטסאפ ↗</a></div>
@@ -294,7 +344,10 @@ Object.entries(byMonth).forEach(([m,names])=>parts.push(`${names.join(' ו־')} 
 const active=state.month===String(NOW);
 const sel=state.month==='all'?null:Number(state.month);
 const months=`<div class="now-months" role="group" aria-label="בחירת חודש">${MONTH_SHORT.map((m,i)=>{const n=i+1;return `<button type="button" class="nm${n===NOW?' is-now':''}${n===sel?' is-sel':''}" data-month="${n}" aria-pressed="${n===sel}" aria-label="${MONTH_NAMES[i]}${n===NOW?' (החודש)':''}">${m}</button>`}).join('')}</div>`;
-el.now.innerHTML=`<div class="now-main"><div class="now-text"><span class="now-label">מה עובד ב${MONTH_NAMES[NOW-1]}</span><p>${parts.join(' · ')}</p></div><button type="button" class="now-button" id="nowButton" aria-pressed="${active}">${active?'הצג את כל השנה':'הצג רק מה שעובד עכשיו'}</button></div>${months}`;
+const fm=refMonth(),inFish=FISH.filter(f=>fishStatus(f.k,fm)!=='off').sort((a,b)=>(fishStatus(a.k,fm)==='peak'?0:1)-(fishStatus(b.k,fm)==='peak'?0:1));
+const fishLine=`<p class="now-fish"><span>דגים בעונה ב${MONTH_NAMES[fm-1]}:</span> ${inFish.map(f=>fishStatus(f.k,fm)==='peak'?`<b class="pk">${f.label} <em>שיא</em></b>`:f.label).join(' · ')}</p>`;
+el.now.innerHTML=`<div class="now-main"><div class="now-text"><span class="now-label">מה עובד ב${MONTH_NAMES[NOW-1]}</span><p>${parts.join(' · ')}</p>${fishLine}</div><button type="button" class="now-button" id="nowButton" aria-pressed="${active}">${active?'הצג את כל השנה':'הצג רק מה שעובד עכשיו'}</button></div>${months}`;
+const wrap=document.getElementById('fishCalWrap');if(wrap){const was=wrap.querySelector('details');const open=was?was.open:false;wrap.innerHTML=fishCalendar();if(open)wrap.querySelector('details').open=true}
 }
 function render(){
 const q=state.search.trim().toLocaleLowerCase('he');
@@ -307,6 +360,7 @@ return `<section class="lure-group" aria-labelledby="group-${group.id}"><div cla
 el.count.textContent=`${visible.length} מתוך ${lures.length} דמויים`;
 el.empty.hidden=visible.length!==0;
 el.hint.hidden=state.month==='all';
+{const fh=document.getElementById('fishHint');if(fh){const f=state.fish!=='all'&&fishInfo(state.fish);fh.hidden=!f;if(f){const st=fishStatus(f.k,refMonth());fh.className='fish-hint is-'+st;fh.textContent=`${fishTitle(f.k)} — ${st==='peak'?'בשיא העונה':st==='in'?'בעונה':'מחוץ לעונה'} ב${MONTH_NAMES[refMonth()-1]}`}}}
 renderNow();
 initAnimations();
 }
@@ -349,7 +403,7 @@ const $=id=>document.getElementById(id);
 const TYPES=['מינו / פנסיל','טופ ווטר','ג׳יג','סיליקון','אחר'];
 const typeOf={minnow:'מינו / פנסיל',topwater:'טופ ווטר',jig:'ג׳יג',soft:'סיליקון'};
 $('sfType').innerHTML=TYPES.map((t,i)=>`<label class="sf-chip"><input type="radio" name="sfType" value="${t}"${i===0?' checked':''}><span>${t}</span></label>`).join('');
-$('sfFish').innerHTML=fishNames.map(f=>`<label class="sf-chip"><input type="checkbox" name="sfFish" value="${f}"><span>${f}</span></label>`).join('');
+$('sfFish').innerHTML=[...new Set([...fishNames,...FISH.map(f=>f.k)])].sort((a,b)=>a.localeCompare(b,'he')).map(f=>`<label class="sf-chip"><input type="checkbox" name="sfFish" value="${f}"><span>${f}</span></label>`).join('');
 $('sfMonths').innerHTML=MONTH_NAMES.map((m,i)=>`<label class="sf-chip sf-month"><input type="checkbox" name="sfMonth" value="${i+1}"><span>${MONTH_SHORT[i]}</span></label>`).join('');
 $('sfExisting').innerHTML=lures.map(l=>`<option value="${l.id}">${escapeHTML(l.name)}</option>`).join('');
 const allYear=$('sfAllYear');
