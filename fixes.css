@@ -224,3 +224,7 @@ html[dir=rtl] .fish-cal[open] summary::before{transform:rotate(-90deg)}
 .nf-note.is-peak{background:rgba(244,153,108,.18);color:#ffd9c4}
 .nf-note.is-off{background:rgba(255,255,255,.07);color:#b9cbcc}
 @media(max-width:640px){.now-fishes{flex-direction:column;gap:6px}.nf-label{padding-top:0}.nf{min-height:38px;padding:4px 12px}}
+/* peak months on the lure month bar */
+.mb-track .mb.pk,.month-bar.is-all .mb-track .mb.pk{background:#c4542c}
+.mb-caption .mb-pk{color:#9a3a14}
+.mb-caption b{flex-wrap:wrap}

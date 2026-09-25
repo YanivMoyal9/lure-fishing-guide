@@ -67,21 +67,25 @@ const head=MONTH_SHORT.map((m,i)=>`<span class="${i+1===cur?'cur':''}">${m.repla
 return `<details class="fish-cal" id="fishCal"><summary><span>לוח עונות הדגים</span><small>${FISH.length} דגים · מה בעונה ב${MONTH_NAMES[cur-1]} ומתי השיא</small></summary><div class="fc-legend"><span><i class="lg-pk"></i>שיא</span><span><i class="lg-on"></i>בעונה</span><span><i class="lg-off"></i>מחוץ לעונה</span></div><div class="fc-head"><span></span><span class="fc-track">${head}</span><span></span></div><ul class="fc-list">${rows}</ul></details>`;
 }
 
+
+// Lure season = union of the seasons of its target fish; peak = union of their peaks.
+function seasonOrder(set){const arr=[...set];if(arr.length===12||!arr.length)return arr.sort((a,b)=>a-b);const start=arr.find(m=>!set.has(m===1?12:m-1));const out=[];let m=start;for(let i=0;i<12;i++){if(set.has(m))out.push(m);m=m%12+1}return out}
+lures.forEach(l=>{const known=l.fish.map(fishInfo).filter(Boolean);if(!known.length)return;
+const on=new Set(known.flatMap(f=>f.m)),pk=new Set(known.flatMap(f=>f.p||[]));
+l.months=on.size===12?null:seasonOrder(on);l.peak=pk.size?seasonOrder(pk):null;delete l.seasonName});
 const el={grid:document.querySelector('#cardGrid'),count:document.querySelector('#resultCount'),empty:document.querySelector('#emptyState'),fish:document.querySelector('#fishFilter'),month:document.querySelector('#monthFilter'),search:document.querySelector('#searchFilter'),hint:document.querySelector('#seasonHint'),now:document.querySelector('#nowStrip')};
 const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fishNames=[...new Set(lures.flatMap(l=>l.fish))].sort((a,b)=>a.localeCompare(b,'he'));
 
 const worksIn=(lure,month)=>!lure.months||lure.months.includes(month);
 function nextStart(lure){let m=NOW;for(let i=0;i<12;i++){m=m%12+1;if(lure.months.includes(m))return m}return null}
-function rangeText(months){
-// months are listed in season order, so first and last give the range
-return `${MONTH_SHORT[months[0]-1]}–${MONTH_SHORT[months[months.length-1]-1]}`;
-}
+function rangeText(months){return monthsText(months)}
 function season(lure){
-if(!lure.months)return {badges:[{text:'כל השנה',className:'all-year'}],share:'כל השנה'};
+const pk=lure.peak?` · שיא: ${monthsText(lure.peak)}`:'';
+if(!lure.months)return {badges:[{text:'כל השנה',className:'all-year'}],share:'כל השנה'+pk};
 const range=rangeText(lure.months);
 const status=lure.months.includes(NOW)?{text:'בעונה עכשיו',className:'in-season'}:{text:`מתחיל ב${MONTH_NAMES[nextStart(lure)-1]}`,className:'off-season'};
-return {badges:[status,{text:range,className:'range'}],share:`${lure.seasonName?lure.seasonName+': ':''}${range}`};
+return {badges:[status,{text:range,className:'range'}],share:`${range}${pk}`};
 }
 const profiles={
 1:{pace:'בינוני',motion:'pause',label:'גלגול ← עצירה ← גלגול',water:'אמצע המים'},
@@ -308,10 +312,11 @@ if(io)io.observe(svg);else a.visible=true;
 if(!reduceMotion&&rafId===null)rafId=requestAnimationFrame(loop);
 }
 function monthBar(lure){
-const label=lure.months?`עונה: ${lure.months.map(m=>MONTH_NAMES[m-1]).join(', ')}`:'עובד כל השנה';
+const pk=lure.peak||[],peakNow=pk.includes(NOW);
+const label=(lure.months?`עונה: ${lure.months.map(m=>MONTH_NAMES[m-1]).join(', ')}`:'עובד כל השנה')+(pk.length?`. שיא: ${pk.map(m=>MONTH_NAMES[m-1]).join(', ')}`:'');
 const inNow=!lure.months||lure.months.includes(NOW);
-const text=lure.months?`${rangeText(lure.months)}${inNow?' · בעונה עכשיו':''}`:'כל השנה';
-return `<div class="month-bar${lure.months?'':' is-all'}" role="img" aria-label="${label}"><div class="mb-track">${MONTH_NAMES.map((m,i)=>`<span class="mb${!lure.months||lure.months.includes(i+1)?' on':''}${i+1===NOW?' now':''}" title="${m}"></span>`).join('')}</div><div class="mb-caption"><span class="mb-label">עונה</span><b>${text}</b><span class="mb-now"><i></i>${MONTH_NAMES[NOW-1]}</span></div></div>`;
+const text=(lure.months?rangeText(lure.months):'כל השנה')+(pk.length?` · <span class="mb-pk">שיא ${monthsText(pk)}</span>`:'')+(peakNow?' · <span class="mb-pk">בשיא עכשיו</span>':inNow&&lure.months?' · בעונה עכשיו':'');
+return `<div class="month-bar${lure.months?'':' is-all'}" role="img" aria-label="${label}"><div class="mb-track">${MONTH_NAMES.map((m,i)=>{const n=i+1;return `<span class="mb${pk.includes(n)?' pk':(!lure.months||lure.months.includes(n))?' on':''}${n===NOW?' now':''}" title="${m}${pk.includes(n)?' · שיא':''}"></span>`}).join('')}</div><div class="mb-caption"><span class="mb-label">עונה</span><b>${text}</b><span class="mb-now"><i></i>${MONTH_NAMES[NOW-1]}</span></div></div>`;
 }
 function card(lure){
 const s=season(lure);
